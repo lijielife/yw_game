@@ -43,6 +43,7 @@
               checkUser({openid: res.data.openid}).then((res2) => {
                 if (res2.success) { // 旧用户
                   // 进入主页
+                  wx.setStorageSync('userType', res2.data.usertype)
                   this.$emit('hideWxLogin')
                 } else { // 新用户
                   // 进入登录注册

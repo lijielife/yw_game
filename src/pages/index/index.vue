@@ -1,15 +1,13 @@
 <template>
-  <div class="container" @click="clickHandle('test click', $event)">
+  <div class="container">
     <!--音频按钮-->
-    <div class="music" :class="musicStatus">
-      <!--<img :class="musicStatus" :src="musicSrc" alt="">-->
+    <!-- <div class="music" :class="musicStatus">
       <icon-button :imgUrl="musicSrc" @tapEvent="_toggle"></icon-button>
-    </div>
+    </div> -->
+    <music-button></music-button>
     <!--用户头像-->
     <div class="userinfo">
       <open-data type="userAvatarUrl"></open-data>
-      <!--<img class="userinfo-avatar" v-if="userInfo.avatarUrl" :src="userInfo.avatarUrl" background-size="cover" />-->
-      <!--<img class="userinfo-avatar" v-else :src="avatarUrl" background-size="cover">-->
     </div>
     <!--登录框-->
     <div class="userLogin">
@@ -66,63 +64,19 @@
         <icon-button :imgUrl="imagesUrl.login" @tapEvent="_submit(2)" v-if="loginType !== 1"></icon-button>
       </div>
       <div class="item">
-        <a class="go" @click="showSelGrad = true">我不是卓越学生</a>
+        <a class="go" @click="_submit(3)">我不是卓越学生</a>
         <a class="go" @click="loginType = 1" v-if="loginType !== 1">老师登录</a>
         <a class="go" @click="loginType = 2" v-if="loginType !== 2">学生登录</a>
       </div>
     </div>
     <!--底部-->
     <foot :imgUrl="imagesUrl.foot"></foot>
-    <!--游客选年级-->
-    <div class="visitor" v-show="showSelGrad">
-      <div class="flexColum">
-        <div class="close" @click="showSelGrad = false">
-          <img src="/static/images/visit/close.png">
-        </div>
-        <div class="title">
-          <img src="/static/images/visit/visit_title.png">
-        </div>
-        <div class="content">
-          <h1 class="small">
-            <img src="/static/images/visit/small.png">
-          </h1>
-          <div class="con">
-            <div class="img" v-for="(gradS, index) in gradeSmallSrc" :key="gradS.grad" @click="_selGrad(gradS.grad)">
-              <img :src="gradS.gradSel" v-if="gradS.grad === selGrad">
-              <img :src="gradS.gradImg" v-else>
-            </div>
-          </div>
-          <h1  class="middle">
-            <img src="/static/images/visit/middle.png">
-          </h1>
-          <div class="con">
-            <div class="img" v-for="(gradM, index) in gradeMiddleSrc" :key="gradM.grad"  @click="_selGrad(gradM.grad)">
-              <img :src="gradM.gradSel" v-if="gradM.grad === selGrad">
-              <img :src="gradM.gradImg" v-else>
-            </div>
-          </div>
-        </div>
-        <div class="bottom">
-          <p class="tip">
-            <img src="/static/images/visit/tip.png">
-          </p>
-          <div class="btn">
-            <div class="sure">
-              <icon-button :imgUrl="imagesUrl.visit.sure" @tapEvent="_submit(3)"></icon-button>
-            </div>
-            <div class="cancel" @click="showSelGrad = false">
-              <icon-button :imgUrl="imagesUrl.visit.cancel"></icon-button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
   </div>
 </template>
 
 <script>
 import iconButton from '@/components/icon-button'
+import musicButton from '@/components/music-button'
 import foot from '@/components/foot'
 import {getCode, stuLogin, visitLogin, teaLogin, getShareCoin} from '@/utils/api'
 
@@ -132,12 +86,7 @@ export default {
       imagesUrl: {
         login: require('static/images/login.png'),
         btn: require('static/images/btn_bg.png'),
-        foot: require('static/images/foot_img.png'),
-        visit: {
-          tip: require('static/images/visit/tip.png'),
-          sure: require('static/images/visit/sure.png'),
-          cancel: require('static/images/visit/cancel.png')
-        }
+        foot: require('static/images/foot_img.png')
       },
       motto: 'Hello World',
       userInfo: {},
@@ -149,7 +98,6 @@ export default {
       interVal: null,
       loginType: 2, // 登录类型： 2：学生登录， 1：老师登录
       selGrad: 0, // 选择年级
-      showSelGrad: false,
       // todo: 表单信息
       userName: '', // 真实姓名 --- 学生
       phoneNumber: '', // 手机号码 --- 学生
@@ -163,21 +111,12 @@ export default {
     // 切换音乐按钮
     musicSrc: function () {
       return require(`static/images/music_${this.musicStatus}.png`)
-    },
-    // 选择年级---小学
-    gradeSmallSrc: function () {
-      let arr = [2, 3, 4, 5, 6]
-      return this._initSrc(arr)
-    },
-    // 选择年级----初中
-    gradeMiddleSrc: function () {
-      let arr = [11, 12, 13]
-      return this._initSrc(arr)
     }
   },
   components: {
     iconButton,
-    foot
+    foot,
+    musicButton
   },
   onShow () {
   },
@@ -206,10 +145,6 @@ export default {
       }
       return urls
     },
-    // 选择年级
-    _selGrad (val) {
-      this.selGrad = val
-    },
     // 倒计时
     _countDown () {
       this.interval = null
@@ -227,6 +162,13 @@ export default {
     // 获取手机验证码
     _getCode () {
       this.start = true
+      if (this.phoneNumber.length !== 11) {
+        wx.showToast({
+          title: '亲，请输入正确的电话号码',
+          icon: 'none'
+        })
+        return
+      }
       this._countDown()
       let param = {
         phoneNumber: this.phoneNumber
@@ -277,12 +219,12 @@ export default {
           break
         case 3: // 游客登录
           param = {
-            graId: this.selGrad,
             wxMsgJson: JSON.stringify(wxMsgJson)
           }
           fn = visitLogin
           break
       }
+      console.log(param)
       fn(param).then((res) => {
         if (res.success) {
           // 分享者获得分享积分或金币
@@ -300,27 +242,37 @@ export default {
             })
           }
           // 缓存用户类型
-          wx.setStorageSync('userType', type)
-          this.showSelGrad = false
-          wx.navigateTo({url: '../student/main'})
+          wx.setStorageSync('userType', `${type}`)
+          let param = `?flag=true`
+          this.goToPage('student', param)
+          // wx.navigateTo({url: '../student/main'})
         } else {
           wx.showToast({
             title: res.desc,
             icon: 'none'
           })
-          if (res.data === '1') {
-            wx.navigateTo({url: '../student/main'})
-          }
+          /* if (res.data === '1') { // 用户已注册
+            this.goToPage('student')
+            // wx.navigateTo({url: '../student/main'})
+          } */
         }
       })
     },
     // 音乐开关
     _toggle () {
+      let bgMusic = wx.getBackgroundAudioManager()
+      console.log(bgMusic)
       this.musicStatus = this.musicStatus === 'run' ? 'stop' : 'run'
+      if (bgMusic.paused) {
+        wx.playBackgroundAudio()
+      } else {
+        wx.pauseBackgroundAudio()
+      }
     },
-    // 获取用户信息
-    clickHandle (msg, ev) {
-      console.log('clickHandle:', msg, ev)
+    // 页面跳转
+    goToPage (page, param) {
+      let url = param ? `../${page}/main${param}` : `../${page}/main`
+      wx.navigateTo({url: url})
     }
   }
 }
@@ -427,8 +379,8 @@ export default {
   flex-direction: column;
   align-items: center;
   margin-top: 104rpx;
-  width: 256rpx;
-  height: 256rpx;
+  width: 200rpx;
+  height: 200rpx;
   border:24rpx solid #ffcc66;
   border-radius: 24rpx;
   box-shadow: 15rpx 15rpx 10rpx #ccc;

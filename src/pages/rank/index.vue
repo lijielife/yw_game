@@ -150,11 +150,17 @@
                 avatarUrl: item.avatarUrl
               })
             })
+            // 老师数据
+            if (wx.getStorageSync('userType') === '1') {
+              this.userData = {
+                integralCount: '--',
+                no: '--'
+              }
+            }
             this.rankData.sort((a, b) => {
               return parseInt(b.integralCount) - parseInt(a.integralCount)
             })
             for (let i = 0; i <= this.rankData.length; i++) {
-              console.log(this.userData.openid, this.rankData[i].openid)
               if (this.userData.openid === this.rankData[i].openid) {
                 this.userData.no = i + 1
               }

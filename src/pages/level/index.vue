@@ -1,30 +1,32 @@
 <template>
   <div class="container">
-    <div class="top">
-      <stu-card :imgUrl="imagesSrc.card">
-        <div class="con">
-          <div class="score">
-            <div class="score_img">
-              <img src="/static/images/score.png" alt="">
+    <div>
+      <div class="top">
+        <stu-card :imgUrl="imagesSrc.card">
+          <div class="con">
+            <div class="score">
+              <div class="score_img">
+                <img src="/static/images/score.png" alt="">
+              </div>
+              <span>{{score}}</span>
             </div>
-            <span>{{score}}</span>
+            <div class="info">
+              <span>第{{issue}}期</span>
+              <span>当前第{{currentNum}}关</span>
+              <span>总{{levelNum}}关</span>
+            </div>
           </div>
-          <div class="info">
-            <span>第{{issue}}期</span>
-            <span>当前第{{currentNum}}关</span>
-            <span>总{{levelNum}}关</span>
+        </stu-card>
+      </div>
+      <div class="level">
+        <div class="level-con">
+          <div class="flex-item" v-for="(i, index) in levelNum" :key="i">
+            <div class="item" :class="{success: index < currentNum, now: index === currentNum}"
+                 :style="{boxShadow: clickItem !== index ? '8rpx 8rpx 5rpx #999' : ''}"
+                 @touchstart.prevent="_touchStart(index)"
+                 @touchend.prevent="_touchEnd(index)"
+                 @tap.prevent="_tap(index)">{{i + 1}}</div>
           </div>
-        </div>
-      </stu-card>
-    </div>
-    <div class="level">
-      <div class="level-con">
-        <div class="flex-item" v-for="(i, index) in levelNum" :key="i">
-          <div class="item" :class="{success: index < currentNum, now: index === currentNum}"
-               :style="{boxShadow: clickItem !== index ? '10rpx 10rpx 5rpx #cccccc' : ''}"
-               @touchstart.prevent="_touchStart(index)"
-               @touchend.prevent="_touchEnd(index)"
-               @tap.prevent="_tap(index)">{{i + 1}}</div>
         </div>
       </div>
     </div>
@@ -234,7 +236,7 @@
     height: 127rpx;
     color: #ffffff;
     border-radius: 8rpx;
-    margin-bottom: 13rpx;
+    margin-bottom: 15rpx;
     line-height: 127rpx;
     font-size: 64rpx;
     font-weight: 700;

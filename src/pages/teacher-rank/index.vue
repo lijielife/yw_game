@@ -1,9 +1,10 @@
 <template>
   <div class="container">
+    <div>
     <div class="top">
       <stu-card :imgUrl="imagesSrc.card">
         <div class="con">
-          <p class="title">卓越大语文中国古典四大名著导读班</p>
+          <p class="title">{{subjectName}}</p>
           <p class="info">共<span>{{countStudent}}</span>人，平均通过<span>{{teaAverage}}</span>关</p>
         </div>
       </stu-card>
@@ -18,15 +19,15 @@
       </div>
       <scroll-view class="rank-scroll" scroll-y v-if="rankData.length">
         <div class="item" v-for="(item, index) in rankData" :key="index">
-          <span class="li">{{item.name}}</span>
-          <span class="li">{{item.done}}</span>
-          <span class="li">{{item.score}}</span>
-          <span class="li">{{item.once}}</span>
-          <span class="li">{{item.repeat}}</span>
+          <span class="li">{{item.studentName}}</span>
+          <span class="li">{{item.my_sequence}}</span>
+          <span class="li">{{item.integral_count}}</span>
+          <span class="li">{{item.access_first}}</span>
+          <span class="li">{{item.access_many}}</span>
         </div>
       </scroll-view>
     </div>
-
+    </div>
     <foot :imgUrl="imagesSrc.foot"></foot>
   </div>
 </template>
@@ -43,31 +44,17 @@
           foot: require('static/images/foot_img.png')
         },
         rankData: [
-          /* {name: '林嘉欣', done: '1', score: '370', once: '5', repeat: '10'},
-          {name: '林嘉欣', done: '6', score: '340', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '5', score: '440', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '4', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '8', score: '300', once: '5', repeat: '8'},
-          {name: '林嘉欣', done: '6', score: '320', once: '15', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '310', once: '10', repeat: '1'},
-          {name: '林嘉欣', done: '45', score: '100', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '12', score: '800', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'},
-          {name: '林嘉欣', done: '6', score: '300', once: '5', repeat: '3'} */
         ],
         method: true,
         countStudent: '',
-        teaAverage: ''
+        teaAverage: '',
+        subjectName: ''
       }
     },
     onLoad (opt) {
       this.countStudent = opt.countStudent
       this.teaAverage = opt.teaAverage
+      this.subjectName = opt.subjectName
       this.myStudentsAverage(opt.subjectsClassID)
     },
     methods: {
@@ -88,6 +75,10 @@
         }
         myStudentsAverage(param).then((res) => {
           console.log(res)
+          this.rankData.length = 0
+          if (res.success) {
+            this.rankData = res.data
+          }
         })
       }
     },

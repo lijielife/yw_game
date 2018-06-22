@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <music-button :t="t" :r="r"></music-button>
     <div class="index-con" v-if="userData.userObj">
       <div class="top">
         <div class="user">
@@ -7,15 +8,17 @@
             <div class="hat stu_1" :class="hatType">
               <img :src="imagesSrc.hats[hatType]" alt="">
             </div>
-            <img :src="userData.weixinObj.avatarUrl">
+            <open-data type="userAvatarUrl"></open-data>
           </div>
           <div class="info">
-            <!--<div class="change_btn info_con">更改年级</div>-->
             <div class="name info_con">
               <div class="icon">
                 <img src="/static/images/sun.png">
               </div>
-              <p class="text">{{userData.weixinObj.nickname}}</p>
+              <p class="text">
+                <open-data type="userNickName"></open-data>
+              </p>
+              <span @click="_changeGrad">{{currentGradName}}<i class="down"></i></span>
               <div class="bg">
                 <img src="/static/images/info_bg.png">
               </div>
@@ -24,17 +27,17 @@
               <div class="icon">
                 <img src="/static/images/phone.png">
               </div>
-              <p class="text">{{userData.userObj.phone}}</p>
+              <p class="text">{{userData.userObj.phone || '--'}}</p>
               <div class="bg">
                 <img src="/static/images/info_bg.png">
               </div>
             </div>
           </div>
         </div>
-        <div class="status" v-if="userType !== '1'">
-          <status-card :text="userData.userObj.goldCoin" :imgUrl="imagesSrc.gold" v-if="userType === '3'"></status-card>
-          <status-card :text="userData.userObj.integralCount" :imgUrl="imagesSrc.score"></status-card>
-          <status-card :text="`第${userData.userObj.perSequenceCn}期`"></status-card>
+        <div class="status">
+          <status-card :text="userData.userObj.goldCoin || '--'" :imgUrl="imagesSrc.gold" v-if="userType === '3'"></status-card>
+          <status-card v-if="userType !== '1'" :text="userData.userObj.integralCount || '--'" :imgUrl="imagesSrc.score"></status-card>
+          <status-card :text="`第${userData.userObj.perSequenceCn || '--'}期`"></status-card>
         </div>
       </div>
       <div class="con" v-if="userType !== '1'">
@@ -56,10 +59,10 @@
           </div>
         </div>
         <div class="cardGroup">
-          <div class="card flipInX" @click="goToPageLevel">
+          <div class="card flipInX" @click="goToPageLevel(1)">
             <stu-card :imgUrl="imagesSrc.cards.s1">
               <div class="card-con">
-                <div class="rocket card-img1">
+                <div class="rocket card-img1" :class="{shake: shakeN === 1}">
                   <img src="/static/images/rocket.png">
                 </div>
                 <div class="card-info">
@@ -74,10 +77,10 @@
               </div>
             </stu-card>
           </div>
-          <div class="card flipInX"  @click="goToPageWrongBook">
+          <div class="card flipInX"  @click="goToPageWrongBook(2)">
             <stu-card :imgUrl="imagesSrc.cards.s2">
               <div class="card-con">
-                <div class="book card-img1">
+                <div class="book card-img1" :class="{shake: shakeN === 2}">
                   <img src="/static/images/book.png">
                 </div>
                 <div class="card-info">
@@ -158,7 +161,7 @@
           </div>
         </div>
       </div>
-      <div class="con" v-if="userType === '1'" style="max-height: 810rpx;overflow-y: auto;">
+      <div class="con" v-if="userType === '1'" style="max-height: 810rpx;overflow-y: auto;margin-top: 50rpx;">
         <div class="t-card flipInX" @click="goToWronBook">
           <stu-card :imgUrl="imagesSrc.cards.s1">
             <div class="tcard-con">
@@ -170,7 +173,7 @@
             </div>
           </stu-card>
         </div>
-        <div class="t-card flipInX" @click="showSelGrad = true">
+        <div class="t-card flipInX"  @click="goToPageLevel">
           <stu-card :imgUrl="imagesSrc.cards.s2">
             <div class="tcard-con">
               <h1 class="cGray">答题闯关</h1>
@@ -188,7 +191,7 @@
               <img :src="imagesSrc.cards.s3" alt="">
               <div class="content">
                 <div class="tcard-con">
-                  <h1 class="cWhite">{{classItem.subjectsClassName}}</h1>
+                  <h1 class="cWhite">{{classItem.subjectsClassName}}({{classItem.gradeName}})</h1>
                   <div class="text">
                     <div>共<span>{{classItem.countStudent}}</span>人</div>
                     <div class="ml50">平均通过<span>{{classItem.teaAverage}}</span>闯关</div>
@@ -224,24 +227,21 @@
         </div>
       </div>
     </div>
-
+    <!--底部-->
     <foot :imgUrl="imagesSrc.foot" v-if="userData.userObj"></foot>
     <!--微信授权登录-->
     <wx-login v-if="showWxLogin" @hideWxLogin="_hide" @goToIndex="_goToIndex"></wx-login>
     <!--弹窗选年级-->
-    <div class="visitor" v-show="showSelGrad">
+    <div class="visitor zoomInUp" v-if="showSelGrad">
       <div class="flexColum">
-        <div class="close" @click="showSelGrad = false">
-          <!--<img :src="imagesSrc.visit.close" alt="">-->
+        <div class="close" @click="_cancelSelGrad">
           <img src="/static/images/visit/close.png">
         </div>
         <div class="title">
-           <!--<img :src="imagesSrc.visit.title" alt="">-->
           <img src="/static/images/visit/visit_title.png">
          </div>
          <div class="content">
            <h1 class="small">
-             <!--<img :src="imagesSrc.visit.small" alt="">-->
              <img src="/static/images/visit/small.png">
            </h1>
            <div class="con">
@@ -251,7 +251,6 @@
              </div>
            </div>
            <h1  class="middle">
-             <!--<img :src="imagesSrc.visit.middle" alt="">-->
              <img src="/static/images/visit/middle.png">
            </h1>
            <div class="con">
@@ -264,10 +263,10 @@
          <div class="bottom">
            <div class="btn">
              <div class="sure">
-               <icon-button :imgUrl="imagesSrc.visit.sure" @tapEvent="goToPageLevel"></icon-button>
+               <icon-button :imgUrl="imagesSrc.visit.sure" @tapEvent="_gradeChange"></icon-button>
              </div>
-             <div class="cancel" @click="showSelGrad = false">
-               <icon-button :imgUrl="imagesSrc.visit.cancel"></icon-button>
+             <div class="cancel">
+               <icon-button :imgUrl="imagesSrc.visit.cancel" @tapEvent="_cancelSelGrad"></icon-button>
              </div>
            </div>
          </div>
@@ -277,14 +276,16 @@
 </template>
 
 <script type="text/ecmascript-6">
+  import musicButton from '@/components/music-button'
   import StatusCard from '@/components/status-card'
   import foot from '@/components/foot'
   import shadowButton from '@/components/shadow-button'
   import stuCard from '@/components/stu-card'
   import iconButton from '@/components/icon-button'
   import wxLogin from '@/components/wxLogin'
-  import {getUserData, teaMain, checkUser} from '@/utils/api'
+  import {getUserData, teaMain, checkUser, gradeChange} from '@/utils/api'
   import {changeNum} from '@/utils/index'
+  import {grads} from '@/utils/baseUrl'
 
   export default {
     data () {
@@ -322,7 +323,12 @@
         subjectsClassID: '', // 班级id
         showSelGrad: false,
         selGrad: '',
-        showWxLogin: false
+        showWxLogin: false,
+        oldGrad: '',
+        currentGradName: '--',
+        shakeN: 0,
+        t: '120rpx',
+        r: '120rpx'
       }
     },
     computed: {
@@ -340,6 +346,41 @@
     created () {
     },
     methods: {
+      // 取消选年级
+      _cancelSelGrad () {
+        this.selGrad = this.oldGrad
+        this.showSelGrad = false
+      },
+      // 更改年级
+      _changeGrad () {
+        let _this = this
+        wx.showModal({
+          title: '更改年级',
+          content: '年级更改之后，之前闯关获得的头衔和积分将清零哦，确认更改吗？',
+          success: (res) => {
+            if (res.confirm) {
+              _this.showSelGrad = true
+              _this.oldGrad = _this.selGrad
+            } else if (res.cancel) {
+            }
+          }
+        })
+      },
+      // 确认更改年级
+      _gradeChange () {
+        let param = {
+          openid: wx.getStorageSync('openid'),
+          graId: this.selGrad,
+          userType: wx.getStorageSync('userType')
+        }
+        gradeChange(param).then((res) => {
+          if (res.success) {
+            this.showSelGrad = false
+            this.getUserData()
+          }
+        })
+      },
+      // 申请微信openid权限
       _hide () {
         this.getUserData()
         this.showWxLogin = false
@@ -363,7 +404,6 @@
       // 选择年级
       _selGrad (val) {
         this.selGrad = val
-        console.log(this.selGrad)
       },
       getUserData () {
         wx.showLoading({
@@ -371,11 +411,7 @@
         })
         let data = {openid: wx.getStorageSync('openid')}
         let fn = null
-        /* if (!wx.getStorageSync('userType')) {
-          this.goToPage('index')
-          return
-        } */
-        if (wx.getStorageSync('userType') === 1) {
+        if (wx.getStorageSync('userType') === '1') {
           fn = teaMain // 教师主页数据
         } else {
           fn = getUserData // 学生和游客数据
@@ -387,6 +423,11 @@
             this.userData.userObj.perSequenceCn = changeNum(this.userData.userObj.perSequence)
             this.userType = res.data.weixinObj.usertype
             this.hatType = `stu_${this.userData.userObj.titleup}`
+            for (let val of grads) {
+              if (val.gradId === res.data.userObj.graId) {
+                this.currentGradName = val.gradName
+              }
+            }
             wx.setStorageSync('userData', res.data)
             wx.setStorageSync('graId', res.data.userObj.graId)
             wx.setStorageSync('perSequence', res.data.userObj.perSequence)
@@ -426,24 +467,37 @@
         this.goToPage('index', param)
       },
       // 跳转选关
-      goToPageLevel () {
+      goToPageLevel (n) {
         let mySequence = this.userData.userObj.mySequence // 已通关卡数
         let perSequence = this.userData.userObj.perSequence // 期数
         let levelNum = this.userData.ckCount // 总关卡数
-        let gradId = this.userData.userObj.usertype === '1' ? this.selGrad : this.userData.userObj.graId // 年级id
+        let gradId = this.userData.userObj.graId // 年级id
         let integralCount = this.userData.userObj.integralCount // 总积分
         let param = `?mySequence=${mySequence}&perSequence=${perSequence}&levelNum=${levelNum}&gradId=${gradId}&integralCount=${integralCount}`
-        this.goToPage('level', param)
+        let _this = this
+        this.shakeN = n
+        setTimeout(() => {
+          _this.shakeN = 0
+          _this.goToPage('level', param)
+        }, 250)
+        // this.goToPage('level', param)
       },
       // 学生跳转错题本
-      goToPageWrongBook () {
+      goToPageWrongBook (n) {
+        this.shakeN = n
+        let _this = this
         let perSequence = this.userData.userObj.perSequence
         let param = `?perSequence=${perSequence}`
-        this.goToPage('stu-wrongBook', param)
+        setTimeout(() => {
+          _this.shakeN = 0
+          _this.goToPage('stu-wrongBook', param)
+        }, 250)
+        // this.goToPage('stu-wrongBook', param)
         // this.goToPage('top10', param)
       },
+      // 老师查看班级排行
       _goToTeacherRank (item) {
-        let param = `?subjectsClassID=${item.subjectsClassID}&countStudent=${item.countStudent}&teaAverage=${item.teaAverage}`
+        let param = `?subjectsClassID=${item.subjectsClassID}&countStudent=${item.countStudent}&teaAverage=${item.teaAverage}&subjectName=${item.subjectsClassName}`
         this.goToPage('teacher-rank', param)
       },
       // 跳转页面
@@ -453,18 +507,25 @@
       }
     },
     onLoad (opt) {
-      console.log('load-main', opt)
-      if (opt.openid) {
+      console.log(wx.getBackgroundAudioManager(), '123')
+      if (opt.openid) { // 用户分享进入
         wx.setStorageSync('shareOpenid', opt.openid)
+      }
+      if (opt.flag) { // 从登陆注册页进入
+        this.showSelGrad = true
       }
     },
     onShow (opt) {
+//      console.log(wx.backgroundAudioManager())
       console.log('show-main', opt)
       if (wx.getStorageSync('openid')) {
         // 校验是否当期
         checkUser({openid: wx.getStorageSync('openid')}).then((res) => {
           if (res.success) {
-            this.getUserData()
+            wx.setStorageSync('userType', res.data.usertype)
+            if (!this.showSelGrad) {
+              this.getUserData()
+            }
           } else {
             // 进入登录注册
             this.goToPage('index')
@@ -472,10 +533,10 @@
         })
       } else {
         this.showWxLogin = true
-        // this.goToPage('wxLogin')
       }
     },
     components: {
+      musicButton,
       StatusCard,
       foot,
       shadowButton,
@@ -578,6 +639,26 @@
     padding-left: 10rpx;
     line-height: 50rpx;
     font-weight: 700;
+    min-width: 180rpx;
+  }
+  .top .user .info .info_con span{
+    line-height: 45rpx;
+    color: #450000;
+    position: relative;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0 30rpx 0 15rpx;
+    border-radius: 10rpx;
+    font-size: 28rpx;
+  }
+  .top .user .info .info_con span i{
+    position: absolute;
+    right: 8rpx;
+    bottom: 20rpx;
+    height: 0rpx;
+    width: 0rpx;
+    border-top: 10rpx solid #450000;
+    border-left: 10rpx solid transparent;
+    border-right: 10rpx solid transparent;
   }
   .top .user .info .change_btn{
     font-size: 28rpx;
@@ -959,5 +1040,49 @@
   .flipInY {
     backface-visibility: visible !important;
     animation-name: flipInY;
+  }
+
+  @keyframes zoomInUp {
+    from {
+      opacity: 0;
+      -webkit-transform: scale3d(0.1, 0.1, 0.1);
+      transform: scale3d(0.1, 0.1, 0.1);
+      -webkit-animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+      animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    }
+
+    60% {
+      opacity: 1;
+      -webkit-transform: scale3d(0.475, 0.475, 0.475);
+      transform: scale3d(0.475, 0.475, 0.475);
+      -webkit-animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1);
+      animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1);
+    }
+  }
+
+  .zoomInUp {
+    animation: zoomInUp 0.5s linear;
+  }
+  .shake{
+    transform-origin: center bottom;
+    transform: rotate(20deg);
+    animation: shake 0.1s linear 0s 5 alternate;
+  }
+  @keyframes shake {
+    0% {
+      transform: rotate(0deg)
+    }
+    25% {
+      transform: rotate(-10deg)
+    }
+    50% {
+      transform: rotate(10deg)
+    }
+    75% {
+      transform: rotate(0deg)
+    }
+    100% {
+      transform: rotate(-10deg)
+    }
   }
 </style>

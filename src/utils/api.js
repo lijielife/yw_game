@@ -189,3 +189,12 @@ export async function getShareCoin (data) {
   })
   return res
 }
+
+// 用户更改年级
+export async function gradeChange (data) {
+  const res = await request({
+    url: `${baseUrl}/studentContro/gradeChange`,
+    data: data
+  })
+  return res
+}
