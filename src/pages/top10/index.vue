@@ -1,20 +1,21 @@
 <template>
   <div class="container">
-    <!--<img :src="imagesSrc.top" class="top">-->
-    <img src="/static/images/top10/top10.png" class="top">
-    <div class="top10">
-      <div class="item" v-for="(item, index) in top10" :key="index">
-        <div class="con">
-          <img :src="top10_bg[index]" class="item-bg">
-          <div class="item-con">
-            <div class="avatar">
-              <img :src="item.imageUrl">
-            </div>
-            <div class="name">{{item.name}}</div>
-            <div class="score">
-              <!--<img :src="imagesSrc.score">-->
-              <img src="/static/images/score.png">
-              {{item.score}}
+    <div>
+      <img src="/static/images/top10/top10.png" class="top">
+      <div class="top10">
+        <div class="item" v-for="(item, index) in top10" :key="index">
+          <div class="con">
+            <img :src="top10_bg[index]" class="item-bg">
+            <div class="item-con">
+              <div class="avatar">
+                <img :src="item.imageUrl">
+              </div>
+              <div class="name">{{item.name}}</div>
+              <div class="score">
+                <!--<img :src="imagesSrc.score">-->
+                <img src="/static/images/score.png">
+                {{item.score}}
+              </div>
             </div>
           </div>
         </div>
@@ -59,7 +60,6 @@
           mySequence: mySequence
         }
         checkPointTopTen(param).then((res) => {
-          console.log(res)
           this.top10.length = 0
           if (res.success) {
             res.data.forEach((item) => {

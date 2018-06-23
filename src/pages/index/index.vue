@@ -4,7 +4,7 @@
     <!-- <div class="music" :class="musicStatus">
       <icon-button :imgUrl="musicSrc" @tapEvent="_toggle"></icon-button>
     </div> -->
-    <music-button></music-button>
+    <music-button v-if="showMusicButton"></music-button>
     <!--用户头像-->
     <div class="userinfo">
       <open-data type="userAvatarUrl"></open-data>
@@ -104,7 +104,8 @@ export default {
       code: '', // 验证码 ---- 学生
       cardNumber: '', // 通行证账号-----教师
       password: '', // 通行证密码 ----- 教师
-      shakeN: 0
+      shakeN: 0,
+      showMusicButton: false
     }
   },
   computed: {
@@ -161,7 +162,6 @@ export default {
     },
     // 获取手机验证码
     _getCode () {
-      this.start = true
       if (this.phoneNumber.length !== 11) {
         wx.showToast({
           title: '亲，请输入正确的电话号码',
@@ -169,6 +169,7 @@ export default {
         })
         return
       }
+      this.start = true
       this._countDown()
       let param = {
         phoneNumber: this.phoneNumber

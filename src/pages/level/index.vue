@@ -31,13 +31,16 @@
       </div>
     </div>
     <foot :imgUrl="imagesSrc.foot"></foot>
+    <img v-if="showDiamon" src="/static/images/alert/diamon.png" class="diamon">
+    <alert-dialog v-if="showGetGold" @closeAlert="_closeAlert" :getType="type"></alert-dialog>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import foot from '@/components/foot'
+  import alertDialog from '@/components/alert-dialog'
   import stuCard from '@/components/stu-card'
-  import {getUserCheckPoints, checkYoukeGoldCoin, getSequence} from '@/utils/api'
+  import {getUserCheckPoints, checkYoukeGoldCoin, getSequence, getShareCoin} from '@/utils/api'
   export default {
     data () {
       return {
@@ -50,10 +53,40 @@
         issue: 0, // 期数
         levelNum: 0, // 总关卡
         currentNum: 0, // 已通关卡
-        gradId: ''
+        gradId: '',
+        showGetGold: false,
+        type: 'goldNull',
+        showDiamon: false
+      }
+    },
+    // 分享
+    onShareAppMessage () {
+      wx.showShareMenu({
+        withShareTicket: true
+      })
+      let _this = this
+      return {
+        title: '语文大闯关',
+        path: `/pages/student/main?openid=${wx.getStorageSync('openid')}`,
+        success: () => {
+          let param = {
+            shareOpenid: wx.getStorageSync('openid'),
+            userOpenid: '',
+            ckId: '0',
+            isUpdateTitle: false
+          }
+          getShareCoin(param).then((res) => {
+            if (res.data.msg !== '') {
+              _this.type = 'getGold'
+            }
+          })
+        }
       }
     },
     methods: {
+      _closeAlert () {
+        this.showGetGold = false
+      },
       _touchStart (n) {
         if (n <= this.currentNum) {
           this.clickItem = n
@@ -68,6 +101,7 @@
         }
       },
       _tap (n) {
+        console.log('dlll')
         let param = `?id=${n + 1}&levelNum=${this.levelNum}&gradId=${this.gradId}`
         if (n <= this.currentNum) {
           if (wx.getStorageSync('userData').weixinObj.usertype === '3') {
@@ -77,22 +111,13 @@
             // 游客登录需要金币是否足够
             checkYoukeGoldCoin(data).then((res) => {
               if (res.success) {
+                this.showDiamon = true
                 let _this = this
-                wx.showToast({
-                  title: '-10金币',
-                  icon: 'none',
-                  success: (res) => {
-                    console.log(res)
-                    setTimeout(() => {
-                      _this.goToPage('answer', param)
-                    }, 1000)
-                  }
-                })
+                setTimeout(() => {
+                  _this.goToPage('answer', param)
+                }, 1000)
               } else {
-                wx.showToast({
-                  title: res.desc,
-                  icon: 'none'
-                })
+                this.showGetGold = true
               }
             })
           } else {
@@ -155,21 +180,21 @@
       this.gradId = opt.gradId
     },
     onShow () {
+      this.showDiamon = false
       this._getSequence()
-      /* if (wx.getStorageSync('userData').weixinObj.usertype === '1') {
-        this.currentNum = this.levelNum
-      } else {
-        this.getUserCheckPoints()
-      } */
     },
     components: {
       foot,
-      stuCard
+      stuCard,
+      alertDialog
     }
   }
 </script>
 
 <style scoped>
+  .container {
+    position: relative;
+  }
   img{
     width: 100%;
     height: 100%;
@@ -217,7 +242,6 @@
     width: 570rpx;
     margin-top: 30rpx;
     height:782rpx;
-    /*justify-content: center;*/
   }
   .level .level-con{
     display: flex;
@@ -241,14 +265,58 @@
     font-size: 64rpx;
     font-weight: 700;
     background-color: #cccccc;
-    /*box-shadow: 6rpx 6rpx 5rpx #979797;*/
     transition: all 0.3s;
   }
   .level .flex-item .item.success{
     background-color: #ffcc66;
-    /*box-shadow: 6rpx 6rpx 5rpx #cccccc;*/
   }
   .level .flex-item .item.now{
     background-color: #ff8e35;
+  }
+  .diamon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -20%;
+    margin-left: -15%;
+    width: 226rpx;
+    height: 273rpx;
+    transition: all 0.2s;
+    opacity: 0;
+    animation: big 1s linear;
+  }
+  @keyframes big {
+    0% {
+      transform: scale(0.1);
+    }
+    10% {
+      opacity: 1;
+      transform: scale(0.7);
+    }
+    100%{
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  @keyframes zoomInUp {
+    from {
+      opacity: 0;
+      -webkit-transform: scale3d(0.1, 0.1, 0.1);
+      transform: scale3d(0.1, 0.1, 0.1);
+      -webkit-animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+      animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    }
+
+    60% {
+      opacity: 1;
+      -webkit-transform: scale3d(0.475, 0.475, 0.475);
+      transform: scale3d(0.475, 0.475, 0.475);
+      -webkit-animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1);
+      animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1);
+    }
+  }
+
+  .zoomInUp {
+    animation: zoomInUp 0.5s linear;
   }
 </style>

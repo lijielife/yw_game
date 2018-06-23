@@ -10,7 +10,7 @@
         <!--选择年级关卡-->
         <div class="select">
           <div class="grade">
-            <div class="grade-con" @click="showGrad = !showGrad">
+            <div class="grade-con" @click="_openAlert('grad')">
               <span>{{currentGradName || '--'}}</span>
               <span class="down"></span>
             </div>
@@ -19,7 +19,7 @@
             </div>
           </div>
           <div class="grade">
-            <div class="grade-con" @click="showLevel = !showLevel">
+            <div class="grade-con" @click="_openAlert('level')">
               <span>第{{currentLevel || '--'}}关</span>
               <span class="down"></span>
             </div>
@@ -53,32 +53,26 @@
       </div>
     </div>
     <!--弹窗-->
-    <!--
-    <div class="visitor zoomInUp" v-show="showAlert">
-      <div class="flexColum">
-        <div class="close" @click="_cancel">
-          <img src="/static/images/visit/close.png">
-        </div>
+    <div class="alert-dialog zoomInUp" v-show="showAlert">
+      <div class="alert-con">
+        <img src="/static/images/visit/close.png" class="close" @click="_cancel">
         <div class="title">
           <img src="/static/images/pen.png" alt="" class="pen" style="">
-          <p>请选择年级</p>
+          <p>{{titleText}}</p>
           <img src="/static/images/pen.png" alt="" class="pen pen_r" style="">
         </div>
-        <div class="content">
+        <div class="alert-content selgrad" v-if="showType === 'grad'">
+          <div class="alert-content-item" v-for="grad in grads" :key="grad.gradId">
+            <div class="alert-content-item-con" @click="_selGrad(grad.gradId)">{{grad.gradName}}</div>
+          </div>
         </div>
-        <div class="bottom">
-          <div class="btn">
-            <div class="sure">
-              <icon-button :imgUrl="imagesSrc.visit.sure" @tapEvent=""></icon-button>
-            </div>
-            <div class="cancel">
-              <icon-button :imgUrl="imagesSrc.visit.cancel" @tapEvent="_cancel"></icon-button>
-            </div>
+        <div class="alert-content sellevel" v-if="showType === 'level'">
+          <div class="alert-content-item" v-for="item in 21" :key="item">
+            <div class="alert-content-item-con" @click="_selLevel(item)">第{{item + 1}}关</div>
           </div>
         </div>
       </div>
     </div>
-     -->
   </div>
 </template>
 
@@ -106,7 +100,9 @@
         currentLevel: '一',
         currentLevelno: 1,
         wrongSubject: [],
-        showAlert: true
+        showAlert: false,
+        titleText: '请选择年级',
+        showType: 'grad'
       }
     },
     computed: {
@@ -132,6 +128,10 @@
       this._selGrad(wx.getStorageSync('userData').userObj.graId)
     },
     methods: {
+      _openAlert (type) {
+        this.showAlert = true
+        this.showType = type
+      },
       _cancel () {
         this.showAlert = false
       },
@@ -139,7 +139,6 @@
       _selLevel (val) {
         this.currentLevelno = val
         this.currentLevel = changeNum(val)
-        this.showLevel = false
         this.reviewWrongSubject()
       },
       // 选择年级
@@ -152,7 +151,6 @@
         })
         this._getSequence()
         this._selLevel(1)
-        this.showGrad = false
       },
       // 根据年级获取关卡
       _getSequence () {
@@ -189,6 +187,7 @@
           wx.hideLoading()
           this.wrongSubject = []
           if (res.success) {
+            this.showAlert = false
             if (res.data.length) {
               res.data.forEach((item) => {
                 let answer = []
@@ -395,96 +394,6 @@
   .wrong{
     color: #ff9a00;
   }
-  .visitor{
-    position: absolute;
-    z-index: 100;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 672rpx;
-    height: 734rpx;
-    border-radius: 16rpx;
-    background-color: rgba(0,0,0,0.8);
-  }
-  .visitor .flexColum{
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-  .visitor img{
-    width: 100%;
-    height: 100%;
-  }
-  .visitor .flexColum .close{
-    position: absolute;
-    top: 6rpx;
-    right: 0;
-    width: 30rpx;
-    height: 30rpx;
-    font-size: 0;
-    padding: 18rpx;
-  }
-  .visitor .title{
-    padding-top: 36rpx;
-    width: 480rpx;
-    margin: 0 auto;
-    font-size: 0;
-    text-align: center;
-  }
-  .visitor .title p{
-    display: inline-block;
-    font-size: 32rpx;
-    color: #ffffff;
-    height: 84rpx;
-    line-height: 84rpx;
-    padding: 0 20rpx;
-  }
-  .visitor .title img{
-    display: inline-block;
-    vertical-align: bottom;
-  }
-  .visitor .content{
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0 34rpx;
-  }
-  .visitor .content h1{
-    width: 100%;
-    text-align: left;
-    width: 83rpx;
-    height: 35rpx;
-    font-size: 0;
-    padding:10rpx 0 5rpx 20rpx;
-  }
-  .visitor .content .con{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .visitor .content .img{
-    flex: 0 0 172rpx;
-    font-size: 0;
-    width: 172rpx;
-    height: 62rpx;
-    padding: 15rpx 12rpx;
-  }
-  .visitor .bottom{
-    padding: 40rpx 0 58rpx 0;
-  }
-  .visitor .bottom .tip{
-    width: 344rpx;
-    height: 25rpx;
-    font-size: 0;
-    margin:0 auto;
-    padding: 10rpx 0;
-  }
-  .visitor .bottom .btn .sure, .visitor .bottom .btn .cancel{
-    float: left;
-    width: 177rpx;
-    height: 78rpx;
-    padding: 0 36rpx;
-  }
-
   @keyframes zoomInUp {
     from {
       opacity: 0;
@@ -505,5 +414,76 @@
 
   .zoomInUp {
     animation: zoomInUp 0.5s linear;
+  }
+
+  .alert-dialog{
+    position: absolute;
+    z-index: 9999;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600rpx;
+    height: auto;
+    border-radius: 16rpx;
+    background-color: rgba(0,0,0,0.8);
+  }
+  .alert-dialog .alert-con {
+    position: relative;
+    width: 100%;
+    font-size: 0;
+    padding-top: 50rpx;
+  }
+  .alert-dialog .alert-con .close{
+    position: absolute;
+    top: 6rpx;
+    right: 0;
+    width: 30rpx;
+    height: 30rpx;
+    font-size: 0;
+    padding: 18rpx;
+  }
+  .alert-dialog .alert-con .title{
+    display: block;
+    margin: 0 auto;
+    font-size:28rpx;
+    text-align:center;
+  }
+  .alert-dialog .alert-con .title img{
+    display: inline-block;
+  }
+  .alert-dialog .alert-con .title p{
+    display: inline-block;
+    font-size: 32rpx;
+    text-align: center;
+    color: #ffffff;
+    vertical-align:top;
+    padding:17rpx;
+  }
+  .alert-dialog .alert-con .alert-content{
+    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 10rpx;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+  .alert-dialog .alert-con .alert-content .alert-content-item{
+    flex: 0 0 33%;
+    text-align: center;
+    padding: 0;
+    margin-bottom: 30rpx;
+  }
+  .alert-dialog .alert-con .alert-content .alert-content-item .alert-content-item-con{
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    width: 150rpx;
+    height: 50rpx;
+    line-height: 50rpx;
+    font-size: 28rpx;
+    color: #ffffff;
+    border-radius: 50rpx;
+    background-color: #9ed33a;
   }
 </style>

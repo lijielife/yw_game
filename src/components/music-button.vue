@@ -23,6 +23,7 @@
       }
     },
     created () {
+      wx.pauseBackgroundAudio()
       console.log(wx.getBackgroundAudioManager().paused)
       this.musicStatus = wx.getBackgroundAudioManager().paused ? 'stop' : 'run'
     },

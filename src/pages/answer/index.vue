@@ -7,12 +7,10 @@
         </stu-card>
         <div class="pro-bar">
           <div class="bar">
-            <!--<img :src="imagesSrc.pro_bar" class="bar-bg">-->
             <img src="/static/images/pro_bar.png" class="bar-bg">
             <span class="num">{{currentNum}}/{{total}}</span>
             <div class="bar-line">
               <div class="line" :style="{width: lineWidth + 'rpx', backgroundColor: bgc, borderColor: bdc}">
-                <!--<img :src="imagesSrc.dot" class="dot" :class="{jump: showJump, rotate: !showJump}">-->
                 <img src="/static/images/dot.png" class="dot" :class="{jump: showJump, rotate: !showJump}">
               </div>
             </div>
@@ -33,33 +31,31 @@
 
     <!-- 弹窗 -->
     <div class="alert-dialog" v-if="showAlert">
-      <div class="success" v-if="success">
+      <!--闯关成功-->
+      <div class="success" v-if="success !== '3'">
         <div class="background" @click="_back"></div>
-        <!--<img :src="imagesSrc.alert.bg" class="bg bounceInDown">-->
-        <img src="/static/images/alert/bg.png" class="bg bounceInDown">
-        <!--<img :src="imagesSrc.alert.color" class="color">-->
+        <img src="/static/images/alert/bg.png" class="bg bounceInDown" v-if="success === '1'">
         <img src="/static/images/alert/color.png" class="color">
-        <div class="pg bounceInUp delay">
+        <div class="pg bounceInUp delay" v-if="success === '1'">
           <img src="/static/images/alert/p2.png" class="p2">
           <img src="/static/images/alert/p1.png" class="p1">
           <img src="/static/images/alert/gift.png" class="gift">
-          <!--<img :src="imagesSrc.alert.p2" class="p2">
-          <img :src="imagesSrc.alert.p1" class="p1">
-          <img :src="imagesSrc.alert.gift" class="gift">-->
         </div>
+        <div class="bgColor bounceInDown" v-if="success === '2'"></div>
+        <img src="/static/images/alert/fire_gift.png" class="fire_gift bounceInUp delay" v-if="success === '2'">
+        <img src="/static/images/alert/no1_text.png" class="no1_text bounceInDown" v-if="success === '2'">
+        <img src="/static/images/alert/no1.png" class="no1 bounceInUp delay" v-if="success === '2'">
         <div class="text bounceInUp">
-          <!--<img :src="imagesSrc.alert.text_bg" class="text_bg">-->
           <img src="/static/images/alert/text_bg.png" class="text_bg">
-          <!--<img :src="imagesSrc.alert.success_text" class="success_text">-->
           <img src="/static/images/alert/text.png" class="success_text">
         </div>
-        <div class="get bounceInUp">
+        <div class="get bounceInUp" :class="{colorW: success === '2'}">
           <p>本关最高分：{{topScore}}</p>
           <p>获得积分：{{currentScore}}</p>
           <p>排名：{{currentRank}}</p>
         </div>
         <div class="btn bounceInUp">
-          <div class="next">
+          <div class="next" style="margin-right: 35rpx;" v-if="success === '1'">
             <icon-button :imgUrl="imagesSrc.alert.btn_next" @tapEvent="_next"></icon-button>
           </div>
           <div class="share">
@@ -73,9 +69,8 @@
           <p @click="_goToTop10">查看通关前十名>></p>
         </div>
       </div>
-      <div class="fail zoomInUp" v-if="!success">
-        <!-- <img :src="imagesSrc.alert.boom" alt="" class="boom">
-        <img :src="imagesSrc.alert.fail_text" alt="" class="fail_text"> -->
+      <!--闯关失败-->
+      <div class="fail zoomInUp" v-if="success === '3'">
         <div class="background" @click="_back"></div>
         <img src="/static/images/alert/boom.png" class="boom">
         <img src="/static/images/alert/fail_text.png" class="fail_text">
@@ -84,12 +79,16 @@
         </div>
       </div>
     </div>
+    <alert-dialog v-if="showGetGold" @closeAlert="_closeAlert" :getType="type"></alert-dialog>
+    <img v-if="showDiamon" src="/static/images/alert/diamon.png" class="diamon">
+    <img :src="imagesSrc.hats[hatType]"  class="diamon" v-if="showHat">
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import stuCard from '@/components/stu-card'
   import foot from '@/components/foot'
+  import alertDialog from '@/components/alert-dialog'
   // import {alert} from '@/utils/wx'
   import {getAccessPassSubject, submitUserAnswer, getShareCoin, checkYoukeGoldCoin} from '@/utils/api'
   import iconButton from '@/components/icon-button'
@@ -102,22 +101,12 @@
             stu_2: require('static/images/hats/stu_2.png'),
             stu_3: require('static/images/hats/stu_3.png'),
             stu_4: require('static/images/hats/stu_4.png'),
-            stu_5: require('static/images/hats/stu_5.png')
+            stu_5: require('static/images/hats/stu_5.png'),
+            stu_6: require('static/images/hats/stu_6.png')
           },
           card: require('static/images/card/s1.png'),
           foot: require('static/images/foot_img.png'),
-//          pro_bar: require('static/images/pro_bar.png'),
-//          dot: require('static/images/dot.png'),
           alert: {
-           /* bg: require('static/images/alert/bg.png'),
-            boom: require('static/images/alert/boom.png'),
-            color: require('static/images/alert/color.png'),
-            fail_text: require('static/images/alert/fail_text.png'),
-            success_text: require('static/images/alert/text.png'),
-            gift: require('static/images/alert/gift.png'),
-            text_bg: require('static/images/alert/text_bg.png'),
-            p1: require('static/images/alert/p1.png'),
-            p2: require('static/images/alert/p2.png'), */
             btn_again: require('static/images/alert/btn_again.png'),
             btn_next: require('static/images/alert/btn_next.png'),
             btn_share: require('static/images/alert/btn_share.png')
@@ -146,7 +135,7 @@
           rightAnswer: '' // 对题
         },
         showAlert: false,
-        success: false,
+        success: '1',
         submitResult: {},
         currentSequence: 0, // 当前的关卡序号
         currentScore: '0', // 当前关卡获得分数
@@ -157,7 +146,14 @@
         gradId: '',
         ckId: '', // 关卡id
         bgc: 'rgb(255, 160, 0)',  // 绿色rgb(158, 211, 0)-->橙红rgb(255, 77, 0)
-        bdc: 'rgb(255, 180, 0)'  // 绿色rgb(204, 211, 0)-->橙红rgb(204, 77, 0)
+        bdc: 'rgb(255, 180, 0)',  // 绿色rgb(204, 211, 0)-->橙红rgb(204, 77, 0)
+        showGetGold: false,
+        type: 'getScore',
+        showDiamon: false,
+        back: '0', // 返回
+        titleUp: '0', // 头衔
+        showHat: false,
+        hatType: 'stu_0'
       }
     },
     computed: {},
@@ -183,12 +179,21 @@
             isUpdateTitle: _this.isUpdateTitle
           }
           getShareCoin(param).then((res) => {
-            console.log(res)
             if (res.data.msg !== '') {
-              wx.showToast({
-                title: res.data.msg,
-                icon: 'none'
-              })
+              if (_this.isUpdateTitle) {
+                // 升头衔了
+                _this.showGetGold = true
+                if (wx.getStorageSync('userType') === '2') {
+                  _this.type = 'getScore' // getGold, getScore
+                } else {
+                  _this.type = 'gold_diamon'
+                }
+              } else {
+                // 未升头衔
+                _this.showGetGold = true
+                _this.type = 'getGold'
+                _this.back = '1'
+              }
             }
           })
         }
@@ -201,14 +206,20 @@
       this.getAccessPassSubject(options.id)
       this.currentSequence = parseInt(options.id)
       this.levelNum = parseInt(options.levelNum)
+      this.back = '0'
     },
     onHide () {
-      console.log('hide')
       this._initCutDown()
     },
     mounted () {
     },
     methods: {
+      _closeAlert () {
+        this.showGetGold = false
+        if (this.back === '1') {
+          this._back()
+        }
+      },
       _back () {
         setTimeout(() => {
           wx.navigateBack()
@@ -231,25 +242,14 @@
           // 游客登录需要金币是否足够
           checkYoukeGoldCoin(data).then((res) => {
             if (res.success) {
-              wx.showToast({
-                title: '-10金币',
-                icon: 'none',
-                success: () => {
-                  setTimeout(() => {
-                    _this.getAccessPassSubject(this.currentSequence)
-                  }, 1000)
-                }
-              })
+              _this.showDiamon = true
+              setTimeout(() => {
+                _this.getAccessPassSubject(this.currentSequence)
+                _this.showDiamon = false
+              }, 1000)
             } else {
-              wx.showToast({
-                title: res.desc,
-                icon: 'none',
-                success: () => {
-                  setTimeout(() => {
-                    _this._back()
-                  }, 1000)
-                }
-              })
+              _this.showGetGold = true
+              _this.type = 'goldNull'
             }
           })
         } else {
@@ -267,25 +267,14 @@
           let _this = this
           checkYoukeGoldCoin(data).then((res) => {
             if (res.success) {
-              wx.showToast({
-                title: '-10金币',
-                icon: 'none',
-                success: () => {
-                  setTimeout(() => {
-                    _this.getAccessPassSubject(this.currentSequence)
-                  }, 1000)
-                }
-              })
+              _this.showDiamon = true
+              setTimeout(() => {
+                _this.getAccessPassSubject(this.currentSequence)
+                _this.showDiamon = false
+              }, 1000)
             } else {
-              wx.showToast({
-                title: res.desc,
-                icon: 'none',
-                success: () => {
-                  setTimeout(() => {
-                    _this._back()
-                  }, 1000)
-                }
-              })
+              _this.showGetGold = true
+              _this.type = 'goldNull'
             }
           })
         } else {
@@ -335,7 +324,6 @@
         this.submitAnswer.openid = wx.getStorageSync('openid')
         this.submitAnswer.wrongAnswer = JSON.stringify(this.wrongAnswer)
         this.submitAnswer.rightAnswer = JSON.stringify(this.rightAnswer)
-        console.log('答案：', this.submitAnswer)
         submitUserAnswer(this.submitAnswer).then((res) => {
           console.log(res)
           if (res.success) {
@@ -345,9 +333,25 @@
               this.currentRank = res.data.stuRank
               this.topScore = res.data.topScore
               this.isUpdateTitle = res.data.isUpdateTitle
-              this._result(true)
+              const innerAudioContext = wx.createInnerAudioContext()
+              innerAudioContext.autoplay = true
+              innerAudioContext.src = '/static/success.mp3'
+              innerAudioContext.onPlay(() => {
+                console.log('开始播放')
+              })
+              if (this.titleUp === '6' && res.data.isUpdateTitle) {
+                this._result('2')
+              } else {
+                this._result('1')
+              }
             } else {
-              this._result(false)
+              this._result('3')
+              const innerAudioContext = wx.createInnerAudioContext()
+              innerAudioContext.autoplay = true
+              innerAudioContext.src = '/static/fail.mp3'
+              innerAudioContext.onPlay(() => {
+                console.log('开始播放')
+              })
             }
           } else {
             wx.showToast({
@@ -380,7 +384,7 @@
             // 当前关卡总题目
             this.subObj = res.data.subjectObjs
             this.total = this.subObj.length
-
+            this.titleUp = res.data.ckOjbMsg.titleup
             this.submitAnswer.perSequence = res.data.ckOjbMsg.perSequence
             this.submitAnswer.integral = res.data.ckOjbMsg.integral
             this.submitAnswer.graId = res.data.ckOjbMsg.gradeid
@@ -434,6 +438,7 @@
         this.s = 0
         this.showJump = false
         this.lineWidth = 0
+        this.showGetGold = false
         this.bgc = `rgb(255, 160, 0)`
         this.bdc = `rgb(255, 180, 0)`
       },
@@ -484,7 +489,8 @@
     components: {
       stuCard,
       foot,
-      iconButton
+      iconButton,
+      alertDialog
     }
   }
 </script>
@@ -655,7 +661,7 @@
   .alert-dialog .success .bg {
     position: absolute;
     z-index: 1;
-    top: 13%;
+    top: 155rpx;
     left: 12%;
     /*margin-left: -50%;
     margin-top: -70%;*/
@@ -707,7 +713,7 @@
   .alert-dialog .success .text{
     position: absolute;
     z-index: 10;
-    top: 43%;
+    top: 520rpx;
     left: 70rpx;
     width: 610rpx;
     height: 235rpx;
@@ -727,7 +733,7 @@
   .alert-dialog .success .pg{
     position: absolute;
     z-index: 9;
-    top: 18%;
+    top: 215rpx;
     left: 17%;
     /*transform: translate(-50%,-75%);*/
     width: 495rpx;
@@ -772,7 +778,7 @@
   .alert-dialog .success .get{
     position: absolute;
     z-index: 10;
-    top: 57%;
+    top: 692rpx;
     left: 10%;
     /*transform: translate(-50%,210%);*/
     width: 615rpx;
@@ -783,24 +789,27 @@
     text-align: center;
     color: #910000;
   }
+  .alert-dialog .success .get.colorW p{
+    color: #ffffff;
+  }
   /*按钮*/
   .alert-dialog .success .btn{
     position: absolute;
     z-index: 20;
-    top: 68%;
+    top: 835rpx;
     left: 10%;
-    /*transform: translate(-50%,50%);*/
     display: flex;
     width: 615rpx;
+    justify-content:center;
   }
   .alert-dialog .success .btn .share{
-    margin-left: 70rpx;
+    /*margin-left: 70rpx;*/
   }
   /* 查看排行 */
   .alert-dialog .success .bottom{
     position: absolute;
     z-index: 20;
-    top: 80%;
+    top: 970rpx;
     left: 30%;
     /*transform: translate(-50%, 50%);*/
     text-align: center;
@@ -841,9 +850,43 @@
     transform: translate(-50%, -30%);
   }
 
-
   /*img*/
+  .alert-dialog .bgColor{
+    position: absolute;
+    top: 450rpx;
+    left: 150rpx;
+    width: 420rpx;
+    height: 230rpx;
+    border-radius: 50%;
+    background: #663399;
+  }
+  .alert-dialog .fire_gift{
+    position: absolute;
+    top: 120rpx;
+    left: 20rpx;
+    width: 676rpx;
+    height: 464rpx;
+  }
+  .alert-dialog .no1{
+    position: absolute;
+    top: 144rpx;
+    left: 175rpx;
+    width: 345rpx;
+    height: 442rpx;
+    z-index: 11;
+  }
+  .alert-dialog .no1_text{
+    position: absolute;
+    top: 60rpx;
+    left: 150rpx;
+    width: 423rpx;
+    height: 169rpx;
+    z-index: 12;
+  }
   .alert-dialog .bg{
+    position: absolute;
+    top: 100rpx;
+    left: 10%;
     width: 580rpx;
     height: 745rpx;
   }
@@ -1044,5 +1087,30 @@
 
   .fadeInRight {
     animation: fadeInRight 1s linear;
+  }
+  .diamon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -20%;
+    margin-left: -15%;
+    width: 226rpx;
+    height: 273rpx;
+    transition: all 0.2s;
+    opacity: 0;
+    animation: big 1s linear;
+  }
+  @keyframes big {
+    0% {
+      transform: scale(0.1);
+    }
+    10% {
+      opacity: 1;
+      transform: scale(0.7);
+    }
+    100%{
+      transform: scale(2);
+      opacity: 0;
+    }
   }
 </style>

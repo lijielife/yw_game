@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <music-button :t="t" :r="r"></music-button>
+    <music-button :t="t" :r="r"  v-if="showMusicButton"></music-button>
     <div class="index-con" v-if="userData.userObj">
       <div class="top">
         <div class="user">
@@ -42,14 +42,20 @@
       </div>
       <div class="con" v-if="userType !== '1'">
         <div class="buttonGroup">
-          <div class="btn-item" v-if="userType === '3'">
-            <div class="btn flipInY">
+          <div class="btn-item">
+            <div class="btn flipInY" v-if="userType === '3'">
               <shadow-button :imgUrl="imagesSrc.stu" :borderRadius="'25rpx'" @tapEvent="goToStuLogin"></shadow-button>
             </div>
+            <div class="btn flipInY" v-else>
+              <img :src="imagesSrc.stuNull" style="width: 100%; height: 100%;border-radius: 25rpx">
+            </div>
           </div>
-          <div class="btn-item" v-if="userType === '3'">
-            <div class="btn flipInY">
+          <div class="btn-item">
+            <div class="btn flipInY" v-if="userType === '3'">
               <shadow-button :imgUrl="imagesSrc.teach" :borderRadius="'25rpx'" @tapEvent="goToTeachLogin"></shadow-button>
+            </div>
+            <div class="btn flipInY" v-else>
+              <img :src="imagesSrc.teachNull" style="width: 100%; height: 100%;border-radius: 25rpx">
             </div>
           </div>
           <div class="btn-item">
@@ -111,7 +117,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[1].nickName}}</div>
+                      <div class="name">{{studentRanking[1].nickName2 || studentRanking[1].nickName}}</div>
                       <div class="score">
                       <span class="icon">
                         <!--<img :src="imagesSrc.score" alt="">-->
@@ -129,7 +135,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[0].nickName}}</div>
+                      <div class="name">{{studentRanking[0].nickName2 || studentRanking[0].nickName}}</div>
                       <div class="score">
                       <span class="icon">
                         <img src="/static/images/score.png" alt="">
@@ -146,7 +152,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[2].nickName}}</div>
+                      <div class="name">{{studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
                       <div class="score">
                       <span class="icon">
                         <img src="/static/images/score.png" alt="">
@@ -296,13 +302,16 @@
             stu_2: require('static/images/hats/stu_2.png'),
             stu_3: require('static/images/hats/stu_3.png'),
             stu_4: require('static/images/hats/stu_4.png'),
-            stu_5: require('static/images/hats/stu_5.png')
+            stu_5: require('static/images/hats/stu_5.png'),
+            stu_6: require('static/images/hats/stu_6.png')
           },
           score: require('static/images/score.png'),
           gold: require('static/images/gold.png'),
           foot: require('static/images/foot_img.png'),
           stu: require('static/images/stu.png'),
           teach: require('static/images/teach.png'),
+          stuNull: require('static/images/stuNull.png'),
+          teachNull: require('static/images/teachNull.png'),
           help: require('static/images/help.png'),
           cards: {
             s1: require('static/images/card/s1.png'),
@@ -315,7 +324,7 @@
             cancel: require('static/images/visit/cancel.png')
           }
         },
-        hatType: 'stu_1',
+        hatType: 'stu_6',
         userType: '1', // 用户类型：1：教师， 2：学生， 3：游客
         openid: wx.getStorageSync('openid'),
         userData: {},
@@ -327,8 +336,8 @@
         oldGrad: '',
         currentGradName: '--',
         shakeN: 0,
-        t: '120rpx',
-        r: '120rpx'
+        t: '360rpx',
+        r: '30rpx'
       }
     },
     computed: {
@@ -615,6 +624,12 @@
     width: 140rpx;
     height: 64rpx;
   }
+  .stu_6{
+    left: -60rpx;
+    top: -45rpx;
+    width: 140rpx;
+    height: 82rpx;
+  }
   .top .user .info{
     flex: 1;
     display: flex;
@@ -639,7 +654,10 @@
     padding-left: 10rpx;
     line-height: 50rpx;
     font-weight: 700;
-    min-width: 180rpx;
+    max-width: 180rpx;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
   }
   .top .user .info .info_con span{
     line-height: 45rpx;
@@ -829,6 +847,10 @@
   .stu .rank-name .name{
     font-size: 24rpx;
     color: #000;
+    width: 100%;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
   }
   .stu .rank-name .score{
     position: relative;

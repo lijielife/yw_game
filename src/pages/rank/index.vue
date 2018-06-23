@@ -80,11 +80,14 @@
         </div>
       </div>
     </div>
+    <!--ddd-->
+    <alert-dialog v-if="showGetGold" @closeAlert="_closeAlert" :getType="type"></alert-dialog>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
   import iconButton from '@/components/icon-button'
+  import alertDialog from '@/components/alert-dialog'
   import {stuRanking, getShareCoin} from '@/utils/api'
   export default {
     data () {
@@ -94,11 +97,14 @@
         },
         rankData: [],
         userData: {},
-        stuRank: []
+        stuRank: [],
+        showGetGold: false,
+        type: 'getGold'
       }
     },
     components: {
-      iconButton
+      iconButton,
+      alertDialog
     },
     onShow () {
       this.stuRanking()
@@ -108,6 +114,7 @@
       wx.showShareMenu({
         withShareTicket: true
       })
+      let _this = this
       return {
         title: '语文大闯关',
         path: `/pages/student/main?openid=${wx.getStorageSync('openid')}`,
@@ -122,16 +129,16 @@
           getShareCoin(param).then((res) => {
             console.log(res)
             if (res.data.msg !== '') {
-              wx.showToast({
-                title: res.data.msg,
-                icon: 'none'
-              })
+              _this.showGetGold = true
             }
           })
         }
       }
     },
     methods: {
+      _closeAlert () {
+        this.showGetGold = false
+      },
       stuRanking () {
         let param = {
           openid: wx.getStorageSync('openid')
@@ -145,7 +152,7 @@
               }
               this.rankData.push({
                 openid: item.openid,
-                name: item.nickName,
+                name: item.nickName2,
                 score: item.integralCount,
                 avatarUrl: item.avatarUrl
               })
@@ -267,6 +274,10 @@
     text-align: center;
     font-size:24rpx;
     color: #000;
+    max-width: 180rpx;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
   }
   .podium .user .score{
     font-size:24rpx;
@@ -346,6 +357,9 @@
   }
   .rank-con .item .name{
     flex: 0 0 45%;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
   }
   .rank-con .item .score{
     flex: 0 0 30%;
@@ -391,8 +405,13 @@
     width: 100%;
     font-size: 20rpx;
     color: #000000;
-    text-align: left;
+    text-align: center;
     padding-left: 5rpx;
+    margin-left: -10rpx;
+    max-width: 100rpx;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
   }
   .share .share-con .user-rank{
     flex: 1;
@@ -477,4 +496,5 @@
       transform: scale(1);
     }
   }
+
 </style>
