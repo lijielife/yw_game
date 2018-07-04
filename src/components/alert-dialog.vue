@@ -2,13 +2,15 @@
   <div class="alert-dialog zoomInUp">
     <div class="alert-con">
       <img src="/static/images/visit/close.png" class="close" @tap.prevent="_close">
-      <img src="/static/images/alert/gold.png" class="conImg" v-if="getType === 'getGold'">
-      <img src="/static/images/alert/diamon_gold.png" class="conImg" v-if="getType === 'getScore' || getType === 'gold_diamon'">
+      <img src="/static/images/alert/diamonds.png" class="conImg" v-if="getType === 'getGold'">
+      <img src="/static/images/alert/gold.png" class="conImg" v-if="getType === 'getScore' || getType === 'getScore2'">
+      <img src="/static/images/alert/diamon_gold.png" class="conImg" v-if="getType === 'gold_diamon'">
       <img src="/static/images/alert/diamon_null.png" style="width: 519rpx" class="conImg" v-if="getType === 'goldNull'">
-      <p class="text" v-if="getType === 'getGold'">已获得20金币！<br>可以继续闯关啦！</p>
-      <p class="text" v-if="getType === 'getScore'">已获得20积分！<br>可以继续闯关啦！</p>
-      <p class="text" v-if="getType === 'gold_diamon'">已获得20金币和20积分！<br>可以继续闯关啦！</p>
-      <p class="text" v-if="getType === 'goldNull'">金币不够了！<br>请分享后继续获得金币吧！</p>
+      <p class="text" v-if="getType === 'getGold'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得20钻石！<br>可以继续闯关啦！</p>
+      <p class="text" v-if="getType === 'getScore'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得20金币！</p>
+      <p class="text" v-if="getType === 'getScore2'">每成功邀请1位好友，将获得20金币！</p>
+      <p class="text" v-if="getType === 'gold_diamon'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得20钻石和20金币！<br>可以继续闯关啦！</p>
+      <p class="text" v-if="getType === 'goldNull'">钻石不够了！<br>请分享后继续获得钻石吧！</p>
       <div class="btn" v-if="getType === 'goldNull'">
         <button open-type="share" plain="true" style="width: 100%;height: 100%;border: 0;text-align: left;padding: 0;">
           <img src="/static/images/rank/share_btn.png">
@@ -70,6 +72,10 @@
     text-align: center;
     color: #ffffff;
     padding:20rpx 0 60rpx 0;
+  }
+  .alert-dialog .alert-con p.text .fs{
+    font-size: 24rpx;
+    color: #ddd;
   }
   .alert-dialog .alert-con .btn{
     width: 143rpx;

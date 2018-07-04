@@ -13,7 +13,7 @@
       <div class="title">
         <span class="t">姓名</span>
         <span class="t" @click="rank('done')">已通关<span class="down"></span></span>
-        <span class="t" @click="rank('score')">积分<span class="down"></span></span>
+        <span class="t" @click="rank('score')">金币<span class="down"></span></span>
         <span class="t" @click="rank('once')">一次通关<span class="down"></span></span>
         <span class="t" @click="rank('repeat')">反复刷题<span class="down"></span></span>
       </div>
@@ -69,11 +69,15 @@
         this.method = !this.method
       },
       myStudentsAverage (subjectsClassID) {
+        wx.showLoading({
+          title: '数据加载中...'
+        })
         let param = {
           openid: wx.getStorageSync('openid'),
           subjectsClassID: subjectsClassID
         }
         myStudentsAverage(param).then((res) => {
+          wx.hideLoading()
           console.log(res)
           this.rankData.length = 0
           if (res.success) {

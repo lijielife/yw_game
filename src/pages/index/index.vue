@@ -4,7 +4,7 @@
     <!-- <div class="music" :class="musicStatus">
       <icon-button :imgUrl="musicSrc" @tapEvent="_toggle"></icon-button>
     </div> -->
-    <music-button v-if="showMusicButton"></music-button>
+    <!--<music-button v-if="showMusicButton"></music-button>-->
     <!--用户头像-->
     <div class="userinfo">
       <open-data type="userAvatarUrl"></open-data>
@@ -64,7 +64,7 @@
         <icon-button :imgUrl="imagesUrl.login" @tapEvent="_submit(2)" v-if="loginType !== 1"></icon-button>
       </div>
       <div class="item">
-        <a class="go" @click="_submit(3)">我不是卓越学生</a>
+        <a class="go" @click="_submit(3)">我还不是卓越学生</a>
         <a class="go" @click="loginType = 1" v-if="loginType !== 1">老师登录</a>
         <a class="go" @click="loginType = 2" v-if="loginType !== 2">学生登录</a>
       </div>
@@ -76,7 +76,7 @@
 
 <script>
 import iconButton from '@/components/icon-button'
-import musicButton from '@/components/music-button'
+// import musicButton from '@/components/music-button'
 import foot from '@/components/foot'
 import {getCode, stuLogin, visitLogin, teaLogin, getShareCoin} from '@/utils/api'
 
@@ -105,7 +105,8 @@ export default {
       cardNumber: '', // 通行证账号-----教师
       password: '', // 通行证密码 ----- 教师
       shakeN: 0,
-      showMusicButton: false
+      showMusicButton: false,
+      hasLogin: false // 主动从入口进来的
     }
   },
   computed: {
@@ -116,14 +117,15 @@ export default {
   },
   components: {
     iconButton,
-    foot,
-    musicButton
+    foot
+//    musicButton
   },
   onShow () {
   },
   onLoad (opt) {
     if (opt.userType) {
       this.loginType = parseInt(opt.userType)
+      this.hasLogin = true
     }
   },
   methods: {
@@ -169,12 +171,14 @@ export default {
         })
         return
       }
-      this.start = true
-      this._countDown()
       let param = {
         phoneNumber: this.phoneNumber
       }
       getCode(param).then((res) => {
+        if (res.success) {
+          this.start = true
+          this._countDown()
+        }
         wx.showToast({
           title: res.desc,
           icon: 'none'
@@ -183,7 +187,6 @@ export default {
     },
     // 登录
     _submit (type) {
-      // this.loginType = type
       let userInfo = wx.getStorageSync('userInfo')
       let openid = wx.getStorageSync('openid')
       let wxMsgJson = {
@@ -222,13 +225,17 @@ export default {
           param = {
             wxMsgJson: JSON.stringify(wxMsgJson)
           }
+          if (this.hasLogin) {
+            wx.navigateBack()
+            this.hasLogin = false
+            return
+          }
           fn = visitLogin
           break
       }
-      console.log(param)
       fn(param).then((res) => {
         if (res.success) {
-          // 分享者获得分享积分或金币
+          // 分享者获得分享金币或钻石
           if (wx.getStorageSync('shareOpenid')) {
             let param = {
               shareOpenid: wx.getStorageSync('shareOpenid'),
@@ -252,10 +259,6 @@ export default {
             title: res.desc,
             icon: 'none'
           })
-          /* if (res.data === '1') { // 用户已注册
-            this.goToPage('student')
-            // wx.navigateTo({url: '../student/main'})
-          } */
         }
       })
     },
@@ -466,8 +469,8 @@ export default {
   padding-left: 122rpx;
   font-size: 28rpx;
   color: #ffffff;
-  height: 60rpx;
-  line-height: 60rpx;
+  height: 70rpx;
+  line-height: 70rpx;
 }
 .userLogin .submit{
   margin-top: 50rpx;

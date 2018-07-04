@@ -2,7 +2,7 @@
   <div class="container">
     <div class="content">
       <div class="top">
-        <div class="periods">第{{perSequence}}期</div>
+        <div class="periods">{{sea}}</div>
         <div class="wrong-num">
           <!--<img :src="imagesSrc.pen" alt="" class="pen" style="">-->
           <img src="/static/images/pen.png" alt="" class="pen" style="">
@@ -41,11 +41,13 @@
           wrong_bg: require('static/images/wrong_bg.png')
         },
         wrongSub: [],
-        perSequence: ''
+        perSequence: '',
+        sea: ''
       }
     },
     onLoad (opt) {
       this.perSequence = changeNum(opt.perSequence)
+      this.sea = opt.sea
       this.getMyWrongBooks(opt.perSequence)
     },
     methods: {

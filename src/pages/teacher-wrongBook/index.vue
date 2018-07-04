@@ -4,7 +4,8 @@
       <div class="top">
         <div class="wrong-num">
           <img src="/static/images/pen.png" alt="" class="pen" style="">
-          <p>第{{perSequenceCn || '--'}}期</p>
+          <!--<p>第{{perSequenceCn || '&#45;&#45;'}}期</p>-->
+          <p>{{sea}}</p>
           <img src="/static/images/pen.png" alt="" class="pen pen_r" style="">
         </div>
         <!--选择年级关卡-->
@@ -102,7 +103,8 @@
         wrongSubject: [],
         showAlert: false,
         titleText: '请选择年级',
-        showType: 'grad'
+        showType: 'grad',
+        sea: '' // 年份季节
       }
     },
     computed: {
@@ -124,6 +126,7 @@
     },
     onLoad (opt) {
       this.perSequence = opt.perSequence
+      this.sea = opt.sea
       this.perSequenceCn = changeNum(opt.perSequence)
       this._selGrad(wx.getStorageSync('userData').userObj.graId)
     },

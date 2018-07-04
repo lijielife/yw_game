@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <music-button :t="t" :r="r"  v-if="showMusicButton"></music-button>
+    <!--<music-button :t="t" :r="r"  v-if="showMusicButton"></music-button>-->
     <div class="index-con" v-if="userData.userObj">
       <div class="top">
         <div class="user">
@@ -11,33 +11,45 @@
             <open-data type="userAvatarUrl"></open-data>
           </div>
           <div class="info">
-            <div class="name info_con">
+            <div class="titleUp info_con">
               <div class="icon">
-                <img src="/static/images/sun.png">
+                <img src="/static/images/title_logo.png">
               </div>
               <p class="text">
-                <open-data type="userNickName"></open-data>
+                {{title_text}}
               </p>
               <span @click="_changeGrad">{{currentGradName}}<i class="down"></i></span>
               <div class="bg">
                 <img src="/static/images/info_bg.png">
               </div>
             </div>
-            <div class="phone info_con" v-if="userType === '2'">
+            <div class="name info_con">
               <div class="icon">
-                <img src="/static/images/phone.png">
+                <img src="/static/images/sun.png">
               </div>
-              <p class="text">{{userData.userObj.phone || '--'}}</p>
+              <p class="text">
+                {{userData.userObj.teacherName || userData.userObj.username || userData.userObj.nickName2 || userData.userObj.nickName}}
+              </p>
               <div class="bg">
                 <img src="/static/images/info_bg.png">
               </div>
             </div>
+            <!-- <div class="phone info_con" v-if="userType === '2'">
+              <div class="icon">
+                <img src="/static/images/phone.png">
+              </div>
+              <p class="text">{{userData.userObj.phone || '&#45;&#45;'}}</p>
+              <div class="bg">
+                <img src="/static/images/info_bg.png">
+              </div>
+            </div> -->
           </div>
         </div>
         <div class="status">
           <status-card :text="userData.userObj.goldCoin || '--'" :imgUrl="imagesSrc.gold" v-if="userType === '3'"></status-card>
           <status-card v-if="userType !== '1'" :text="userData.userObj.integralCount || '--'" :imgUrl="imagesSrc.score"></status-card>
-          <status-card :text="`第${userData.userObj.perSequenceCn || '--'}期`"></status-card>
+          <!--<status-card :text="`第${userData.userObj.perSequenceCn || '&#45;&#45;'}期`"></status-card>-->
+          <status-card :text="sea"></status-card>
         </div>
       </div>
       <div class="con" v-if="userType !== '1'">
@@ -76,7 +88,8 @@
                     <img src="/static/images/answer.png">
                   </div>
                   <div class="text">
-                    <div>第<span>{{userData.userObj.perSequence}}</span>期</div>
+                    <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                    <div><span>{{sea}}</span></div>
                     <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
                   </div>
                 </div>
@@ -94,7 +107,8 @@
                     <img src="/static/images/wrong_book.png">
                   </div>
                   <div class="text">
-                    <div>第<span>{{userData.userObj.perSequence}}</span>期</div>
+                    <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                    <div><span>{{sea}}</span></div>
                     <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
                   </div>
                 </div>
@@ -117,7 +131,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[1].nickName2 || studentRanking[1].nickName}}</div>
+                      <div class="name">{{studentRanking[1].username || studentRanking[1].nickName2 || studentRanking[1].nickName}}</div>
                       <div class="score">
                       <span class="icon">
                         <!--<img :src="imagesSrc.score" alt="">-->
@@ -135,7 +149,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[0].nickName2 || studentRanking[0].nickName}}</div>
+                      <div class="name">{{studentRanking[0].username || studentRanking[0].nickName2 || studentRanking[0].nickName}}</div>
                       <div class="score">
                       <span class="icon">
                         <img src="/static/images/score.png" alt="">
@@ -152,7 +166,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
+                      <div class="name">{{studentRanking[2].nickName || studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
                       <div class="score">
                       <span class="icon">
                         <img src="/static/images/score.png" alt="">
@@ -173,7 +187,8 @@
             <div class="tcard-con">
               <h1 class="cBlack">查看错题集</h1>
               <div class="text">
-                <div>第<span>{{userData.userObj.perSequence}}</span>期</div>
+                <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                <div><span>{{sea}}</span></div>
                 <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
               </div>
             </div>
@@ -184,7 +199,8 @@
             <div class="tcard-con">
               <h1 class="cGray">答题闯关</h1>
               <div class="text">
-                <div>第<span>{{userData.userObj.perSequence}}</span>期</div>
+                <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                <div><span>{{sea}}</span></div>
                 <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
               </div>
             </div>
@@ -240,7 +256,7 @@
     <!--弹窗选年级-->
     <div class="visitor zoomInUp" v-if="showSelGrad">
       <div class="flexColum">
-        <div class="close" @click="_cancelSelGrad">
+        <div class="close" @click="_cancelSelGrad" v-if="!hideClose">
           <img src="/static/images/visit/close.png">
         </div>
         <div class="title">
@@ -271,18 +287,43 @@
              <div class="sure">
                <icon-button :imgUrl="imagesSrc.visit.sure" @tapEvent="_gradeChange"></icon-button>
              </div>
-             <div class="cancel">
+             <div class="cancel" v-if="!hideClose">
                <icon-button :imgUrl="imagesSrc.visit.cancel" @tapEvent="_cancelSelGrad"></icon-button>
              </div>
            </div>
          </div>
       </div>
     </div>
+    <!--弹窗提示信息-->
+    <div class="visitor zoomInUp" style="height: 570rpx" v-if="showTip">
+      <div class="flexColum">
+        <div class="close" @click="showTip = false">
+          <img src="/static/images/visit/close.png">
+        </div>
+        <div class="content">
+          <div class="p_con">
+            <p>过关所用挑战次数越少，</p>
+            <p>所花时间越短，</p>
+            <p>获得的奖励就越多哦！</p>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="btn">
+            <div class="sure more">
+              <icon-button :imgUrl="imagesSrc.visit.more" @tapEvent="_goToTip"></icon-button>
+            </div>
+            <div class="cancel cancel2">
+              <icon-button :imgUrl="imagesSrc.visit.cancel2" @tapEvent="showTip = false"></icon-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-  import musicButton from '@/components/music-button'
+//  import musicButton from '@/components/music-button'
   import StatusCard from '@/components/status-card'
   import foot from '@/components/foot'
   import shadowButton from '@/components/shadow-button'
@@ -291,7 +332,7 @@
   import wxLogin from '@/components/wxLogin'
   import {getUserData, teaMain, checkUser, gradeChange} from '@/utils/api'
   import {changeNum} from '@/utils/index'
-  import {grads} from '@/utils/baseUrl'
+  import {grads, season} from '@/utils/baseUrl'
 
   export default {
     data () {
@@ -321,7 +362,9 @@
           },
           visit: {
             sure: require('static/images/visit/sure.png'),
-            cancel: require('static/images/visit/cancel.png')
+            cancel: require('static/images/visit/cancel.png'),
+            more: require('static/images/visit/more.png'),
+            cancel2: require('static/images/visit/cancel2.png')
           }
         },
         hatType: 'stu_6',
@@ -337,7 +380,11 @@
         currentGradName: '--',
         shakeN: 0,
         t: '360rpx',
-        r: '30rpx'
+        r: '30rpx',
+        title_text: '新手', // 头衔名称
+        hideClose: false, // 设置是否隐藏角色选年级的关闭按钮
+        sea: '', // 年份季节
+        showTip: false // 显示提示助手
       }
     },
     computed: {
@@ -355,6 +402,12 @@
     created () {
     },
     methods: {
+      // 跳转小助手
+      _goToTip () {
+        this.showTip = false
+        this.hideClose = false
+        this.goToPage('helper')
+      },
       // 取消选年级
       _cancelSelGrad () {
         this.selGrad = this.oldGrad
@@ -365,7 +418,7 @@
         let _this = this
         wx.showModal({
           title: '更改年级',
-          content: '年级更改之后，之前闯关获得的头衔和积分将清零哦，确认更改吗？',
+          content: '年级更改之后，之前闯关获得的头衔和金币将清零哦，确认更改吗？',
           success: (res) => {
             if (res.confirm) {
               _this.showSelGrad = true
@@ -377,6 +430,13 @@
       },
       // 确认更改年级
       _gradeChange () {
+        if (this.selGrad === '') { // 必须选年级
+          wx.showToast({
+            title: '亲，请选择一个年级！',
+            icon: 'none'
+          })
+          return
+        }
         let param = {
           openid: wx.getStorageSync('openid'),
           graId: this.selGrad,
@@ -385,6 +445,10 @@
         gradeChange(param).then((res) => {
           if (res.success) {
             this.showSelGrad = false
+            if (this.hideClose) { // 从登陆页进入
+              this.showTip = true
+              this.hideClose = false
+            }
             this.getUserData()
           }
         })
@@ -415,9 +479,6 @@
         this.selGrad = val
       },
       getUserData () {
-        wx.showLoading({
-          title: '数据加载中...'
-        })
         let data = {openid: wx.getStorageSync('openid')}
         let fn = null
         if (wx.getStorageSync('userType') === '1') {
@@ -426,12 +487,41 @@
           fn = getUserData // 学生和游客数据
         }
         fn(data).then((res) => {
-          wx.hideLoading()
           if (res.success) {
             this.userData = res.data
             this.userData.userObj.perSequenceCn = changeNum(this.userData.userObj.perSequence)
             this.userType = res.data.weixinObj.usertype
             this.hatType = `stu_${this.userData.userObj.titleup}`
+            let seaName = ''
+            for (let item of season) {
+              if (item.seasonId === res.data.per_seaId) {
+                seaName = item.seasonName
+              }
+            }
+            this.sea = `${this.userData.per_year}${seaName}`
+            switch (this.userData.userObj.titleup) {
+              case '0':
+                this.title_text = '新手'
+                break
+              case '1':
+                this.title_text = '童生'
+                break
+              case '2':
+                this.title_text = '秀才'
+                break
+              case '3':
+                this.title_text = '举人'
+                break
+              case '4':
+                this.title_text = '贡士'
+                break
+              case '5':
+                this.title_text = '进士'
+                break
+              case '6':
+                this.title_text = '状元'
+                break
+            }
             for (let val of grads) {
               if (val.gradId === res.data.userObj.graId) {
                 this.currentGradName = val.gradName
@@ -461,8 +551,9 @@
       },
       // 老师查看错题集
       goToWronBook () {
+        let sea = this.sea
         let perSequence = this.userData.userObj.perSequence
-        let param = `?perSequence=${perSequence}`
+        let param = `?perSequence=${perSequence}&sea=${sea}`
         this.goToPage('teacher-wrongBook', param)
       },
       // 跳转老师登录注册
@@ -479,10 +570,11 @@
       goToPageLevel (n) {
         let mySequence = this.userData.userObj.mySequence // 已通关卡数
         let perSequence = this.userData.userObj.perSequence // 期数
+        let sea = this.sea // 年份季节
         let levelNum = this.userData.ckCount // 总关卡数
         let gradId = this.userData.userObj.graId // 年级id
-        let integralCount = this.userData.userObj.integralCount // 总积分
-        let param = `?mySequence=${mySequence}&perSequence=${perSequence}&levelNum=${levelNum}&gradId=${gradId}&integralCount=${integralCount}`
+        let integralCount = this.userData.userObj.integralCount // 总金币
+        let param = `?mySequence=${mySequence}&perSequence=${perSequence}&levelNum=${levelNum}&gradId=${gradId}&integralCount=${integralCount}&sea=${sea}`
         let _this = this
         this.shakeN = n
         setTimeout(() => {
@@ -496,7 +588,8 @@
         this.shakeN = n
         let _this = this
         let perSequence = this.userData.userObj.perSequence
-        let param = `?perSequence=${perSequence}`
+        let sea = this.sea
+        let param = `?perSequence=${perSequence}&sea=${sea}`
         setTimeout(() => {
           _this.shakeN = 0
           _this.goToPage('stu-wrongBook', param)
@@ -522,15 +615,19 @@
       }
       if (opt.flag) { // 从登陆注册页进入
         this.showSelGrad = true
+        this.hideClose = true
       }
     },
     onShow (opt) {
-//      console.log(wx.backgroundAudioManager())
       console.log('show-main', opt)
       if (wx.getStorageSync('openid')) {
         // 校验是否当期
+        wx.showLoading({
+          title: '数据加载中...'
+        })
         checkUser({openid: wx.getStorageSync('openid')}).then((res) => {
           if (res.success) {
+            wx.hideLoading()
             wx.setStorageSync('userType', res.data.usertype)
             if (!this.showSelGrad) {
               this.getUserData()
@@ -545,7 +642,6 @@
       }
     },
     components: {
-      musicButton,
       StatusCard,
       foot,
       shadowButton,
@@ -651,7 +747,7 @@
   .top .user .info .info_con p.text{
     position: relative;
     z-index: 2;
-    padding-left: 10rpx;
+    padding: 0 30rpx 0 10rpx;
     line-height: 50rpx;
     font-weight: 700;
     max-width: 180rpx;
@@ -687,6 +783,13 @@
     height: 50rpx;
     font-size:0;
   }
+  .top .user .info .titleUp .icon {
+    display: inline-block;
+    width: 45rpx;
+    height: 45rpx;
+    font-size:0;
+    margin-right: 5rpx;
+  }
   .top .user .info .phone .icon{
     width: 30rpx;
     height: 50rpx;
@@ -699,14 +802,15 @@
     bottom: 0;
     left: 0;
     font-size:0;
-    width: 300rpx;
+    width: auto;
+    min-width: 200rpx;
     height: 20rpx;
   }
   .top .user .info .name .bg{
     width: auto;
     min-width: 250rpx;
   }
-  /* 期数金币积分信息 */
+  /* 期数钻石金币信息 */
   .top .status{
     position: absolute;
     right: 20rpx;
@@ -750,7 +854,7 @@
   .con .cardGroup .card .card-con .book{
     width: 164rpx;
     height: 159rpx;
-    padding: 25rpx 16rpx 0 55rpx;
+    padding: 25rpx 42rpx 0 55rpx;
   }
   .con .cardGroup .card .card-con .card-info{
     flex: 1;
@@ -777,7 +881,7 @@
     justify-content: center;
     font-size: 32rpx;
     color: #002abb;
-    width: 80%;
+    width: 85%;
     padding-bottom: 20rpx;
   }
   .con .cardGroup .card .card-con .card-info .text span{
@@ -950,6 +1054,18 @@
     box-sizing: border-box;
     padding: 0 34rpx;
   }
+  .visitor .content .p_con {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 85rpx 50rpx 0;
+  }
+  .visitor .content p{
+    text-align: left;
+    font-size: 40rpx;
+    color: #ffffff;
+    padding: 20rpx 0;
+  }
   .visitor .content h1{
     width: 100%;
     text-align: left;
@@ -973,20 +1089,23 @@
   .visitor .bottom{
     padding: 40rpx 0 58rpx 0;
   }
-  .visitor .bottom .tip{
-    width: 344rpx;
-    height: 25rpx;
-    font-size: 0;
-    margin:0 auto;
-    padding: 10rpx 0;
-  }
+
   .visitor .bottom .btn .sure, .visitor .bottom .btn .cancel{
     float: left;
     width: 177rpx;
     height: 78rpx;
     padding: 0 36rpx;
   }
-
+  .visitor .bottom .btn .sure.more{
+    width: 263rpx;
+    height: 78rpx;
+    padding:0 20rpx;
+  }
+  .visitor .bottom .btn .cancel.cancel2{
+    width: 192rpx;
+    height: 78rpx;
+    padding:0 20rpx;
+  }
   .t-card-con{
     width: 100%;
     height:100%;

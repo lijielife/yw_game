@@ -10,7 +10,7 @@
 <script type="text/ecmascript-6">
 export default {
   props: {
-    text: '第二期',
+    text: '',
     imgUrl: ''
   }
 }
@@ -28,7 +28,7 @@ export default {
     margin-top: 12rpx;
     text-align: right;
     font-size: 0;
-    padding: 0 30rpx;
+    padding: 0 20rpx;
   }
   .s-card p{
     font-size: 28rpx;

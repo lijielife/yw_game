@@ -19,25 +19,21 @@
     computed: {
       // 切换音乐按钮
       musicSrc: function () {
-        return require(`static/images/music_${this.musicStatus}.png`)
+        return require(`static/images/voice_${this.musicStatus}.png`)
       }
     },
     created () {
+      /*
       wx.pauseBackgroundAudio()
       console.log(wx.getBackgroundAudioManager().paused)
       this.musicStatus = wx.getBackgroundAudioManager().paused ? 'stop' : 'run'
+      */
     },
     methods: {
       // 音乐开关
       _toggle () {
-        let bgMusic = wx.getBackgroundAudioManager()
-        console.log(bgMusic)
-        this.musicStatus = !bgMusic.paused ? 'stop' : 'run'
-        if (bgMusic.paused) {
-          wx.playBackgroundAudio()
-        } else {
-          wx.pauseBackgroundAudio()
-        }
+        this.musicStatus = this.musicStatus === 'run' ? 'stop' : 'run'
+        this.$emit('toggle')
       }
     },
     components: {
@@ -62,7 +58,7 @@
     width: 70rpx;
     height: 67rpx;
     transform-origin: center center;
-    animation: rotateX 3s linear infinite;
+    /*animation: rotateX 3s linear infinite;*/
   }
   @keyframes rotateX {
     0% {

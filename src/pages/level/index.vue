@@ -5,15 +5,21 @@
         <stu-card :imgUrl="imagesSrc.card">
           <div class="con">
             <div class="score">
-              <div class="score_img">
+              <div class="score_img" :style="{width: userType === '3' ? '90rpx' : '107rpx', height: userType === '3' ? '90rpx' : '107rpx'}">
                 <img src="/static/images/score.png" alt="">
               </div>
               <span>{{score}}</span>
+              <div class="score_img" style="width: 90rpx;height: 84rpx; margin-left: 40rpx;" v-if="userType === '3'">
+                <img src="/static/images/gold.png" alt="">
+              </div>
+              <span v-if="userType === '3'">{{userDiamond}}</span>
             </div>
             <div class="info">
-              <span>第{{issue}}期</span>
-              <span>当前第{{currentNum}}关</span>
-              <span>总{{levelNum}}关</span>
+              <!--<span>第{{issue}}期</span>-->
+              <span style="text-align: left; text-indent: 20rpx">{{sea}}</span>
+              <!--<span>当前第{{currentNum}}关</span>-->
+              <!--<span>总{{levelNum}}关</span>-->
+              <span>当前闯过第{{currentNum}}/{{levelNum}}关</span>
             </div>
           </div>
         </stu-card>
@@ -31,8 +37,12 @@
       </div>
     </div>
     <foot :imgUrl="imagesSrc.foot"></foot>
-    <img v-if="showDiamon" src="/static/images/alert/diamon.png" class="diamon">
     <alert-dialog v-if="showGetGold" @closeAlert="_closeAlert" :getType="type"></alert-dialog>
+    <!--扣减金币-->
+    <div class="deleteDiamond" v-if="showDelete">
+      <img src="/static/images/gold.png">
+      <p class="text">-10钻石</p>
+    </div>
   </div>
 </template>
 
@@ -56,7 +66,10 @@
         gradId: '',
         showGetGold: false,
         type: 'goldNull',
-        showDiamon: false
+        sea: '',
+        userType: '',
+        userDiamond: 0,
+        showDelete: false
       }
     },
     // 分享
@@ -78,6 +91,7 @@
           getShareCoin(param).then((res) => {
             if (res.data.msg !== '') {
               _this.type = 'getGold'
+              _this.userDiamond += 20
             }
           })
         }
@@ -104,20 +118,31 @@
         console.log('dlll')
         let param = `?id=${n + 1}&levelNum=${this.levelNum}&gradId=${this.gradId}`
         if (n <= this.currentNum) {
-          if (wx.getStorageSync('userData').weixinObj.usertype === '3') {
+          if (this.userType === '3') {
             let data = {
               openid: wx.getStorageSync('openid')
             }
             // 游客登录需要金币是否足够
             checkYoukeGoldCoin(data).then((res) => {
               if (res.success) {
-                this.showDiamon = true
                 let _this = this
+                /*
+                wx.showToast({
+                  title: '-10钻石',
+                  image: '/static/images/gold.png',
+                  success () {
+                    _this.userDiamond -= 10
+                  }
+                }) */
+                this.showDelete = true
+                this.userDiamond -= 10
                 setTimeout(() => {
                   _this.goToPage('answer', param)
-                }, 1000)
+                  _this.showDelete = false
+                }, 1500)
               } else {
                 this.showGetGold = true
+                this.type = 'goldNull'
               }
             })
           } else {
@@ -140,6 +165,8 @@
         getUserCheckPoints(data).then((res) => {
           this.currentNum = res.data.myCheckpoints.length
           this.score = res.data.xsStudents.integralCount
+          this.userDiamond = res.data.xsStudents.goldCoin ? parseInt(res.data.xsStudents.goldCoin) : 0
+          this.userType = res.data.xsStudents.usertype
           if (res.data.myCheckpoints.length) {
             res.data.myCheckpoints.forEach((item) => {
               if (item.topScore === '0') {
@@ -178,9 +205,11 @@
       console.log(opt)
       this.issue = opt.perSequence
       this.gradId = opt.gradId
+      this.sea = opt.sea
+      console.log('djk11')
     },
     onShow () {
-      this.showDiamon = false
+      console.log('djk')
       this._getSequence()
     },
     components: {
@@ -206,6 +235,7 @@
     margin-top: 35rpx;
   }
   .top .con{
+    position: relative;
     width: 100%;
     height: 100%;
   }
@@ -273,31 +303,6 @@
   .level .flex-item .item.now{
     background-color: #ff8e35;
   }
-  .diamon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -20%;
-    margin-left: -15%;
-    width: 226rpx;
-    height: 273rpx;
-    transition: all 0.2s;
-    opacity: 0;
-    animation: big 1s linear;
-  }
-  @keyframes big {
-    0% {
-      transform: scale(0.1);
-    }
-    10% {
-      opacity: 1;
-      transform: scale(0.7);
-    }
-    100%{
-      transform: scale(2);
-      opacity: 0;
-    }
-  }
   @keyframes zoomInUp {
     from {
       opacity: 0;
@@ -315,8 +320,47 @@
       animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1);
     }
   }
-
   .zoomInUp {
     animation: zoomInUp 0.5s linear;
+  }
+  .deleteDiamond{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -200rpx;
+    margin-top:-150rpx;
+    width: 400rpx;
+    font-size: 0;
+    animation: big 1.5s linear 0s forwards;
+  }
+  .big{
+    animation: big 1s linear 0s forwards;
+  }
+  @keyframes big {
+    0% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100%{
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  .deleteDiamond img{
+    display: block;
+    margin: 0 auto;
+    width: 180rpx;
+    height: 170rpx;
+  }
+  .deleteDiamond p{
+    width: 100%;
+    text-align: center;
+    font-size: 48rpx;
+    color: #2384be;
+    padding: 30rpx 0;
   }
 </style>

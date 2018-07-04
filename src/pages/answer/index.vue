@@ -1,9 +1,10 @@
 <template>
   <div class="container">
+    <music-button :t="musicPosition.t" :r="musicPosition.r" @toggle="_toggle"></music-button>
     <div class="con">
-      <div class="question">
+      <div class="question" v-if="!showLevel">
         <stu-card :imgUrl="imagesSrc.card">
-          <div class="text">{{currentSub.content}}</div>
+          <text class="text">{{currentSub.content}}</text>
         </stu-card>
         <div class="pro-bar">
           <div class="bar">
@@ -17,12 +18,12 @@
           </div>
         </div>
       </div>
-      <div class="answer">
+      <div class="answer" v-if="!showLevel">
         <p class="item"
            v-for="(item, indexNum) in currentSub.answer"
            :key="item.no"
            :class="{right: userAnswer === currentSub.rightAnswer && userAnswer === item.no, wrong: userAnswer !== '' && userAnswer !== currentSub.rightAnswer && userAnswer === item.no,fadeInLeft: indexNum%2 === 0 && userAnswer === '', fadeInRight: indexNum%2 !== 0 && userAnswer === ''}"
-           @click="_answer(item.no)">
+           @click="_limitAnswer(item.no)">
           {{item.no}}.{{item.con}}
         </p>
       </div>
@@ -34,28 +35,43 @@
       <!--闯关成功-->
       <div class="success" v-if="success !== '3'">
         <div class="background" @click="_back"></div>
-        <img src="/static/images/alert/bg.png" class="bg bounceInDown" v-if="success === '1'">
+        <!--淡绿椭圆背景-->
+        <img src="/static/images/alert/bg.png" class="bg bounceInDown" v-if="success === '1' || success === '4'">
+        <!--礼花散开-->
         <img src="/static/images/alert/color.png" class="color">
+        <!--人物和礼物-->
         <div class="pg bounceInUp delay" v-if="success === '1'">
           <img src="/static/images/alert/p2.png" class="p2">
           <img src="/static/images/alert/p1.png" class="p1">
           <img src="/static/images/alert/gift.png" class="gift">
         </div>
+        <!--童生到贡士晋升-->
+        <div class="pg bounceInUp delay" v-if="success === '4'">
+          <img :src="imagesSrc.hatsText[hatsTextType]" class="hatText">
+          <img :src="imagesSrc.hats[hatType]" class="hat" :class="hatType">
+        </div>
+        <!--状元淡紫椭圆背景-->
         <div class="bgColor bounceInDown" v-if="success === '2'"></div>
+        <!--状元礼花背景-->
         <img src="/static/images/alert/fire_gift.png" class="fire_gift bounceInUp delay" v-if="success === '2'">
+        <!--状元贺喜文字-->
         <img src="/static/images/alert/no1_text.png" class="no1_text bounceInDown" v-if="success === '2'">
+        <!--状元人物-->
         <img src="/static/images/alert/no1.png" class="no1 bounceInUp delay" v-if="success === '2'">
+        <!--闯关成功文字-->
         <div class="text bounceInUp">
           <img src="/static/images/alert/text_bg.png" class="text_bg">
           <img src="/static/images/alert/text.png" class="success_text">
         </div>
+        <!--得分-->
         <div class="get bounceInUp" :class="{colorW: success === '2'}">
           <p>本关最高分：{{topScore}}</p>
-          <p>获得积分：{{currentScore}}</p>
+          <p>获得金币：{{currentScore}}</p>
           <p>排名：{{currentRank}}</p>
         </div>
+        <!--按钮-->
         <div class="btn bounceInUp">
-          <div class="next" style="margin-right: 35rpx;" v-if="success === '1'">
+          <div class="next" style="margin-right: 35rpx;" v-if="success === '1' || success === '4'">
             <icon-button :imgUrl="imagesSrc.alert.btn_next" @tapEvent="_next"></icon-button>
           </div>
           <div class="share">
@@ -64,6 +80,7 @@
             </button>
           </div>
         </div>
+        <!--查看排行-->
         <div class="bottom bounceInUp">
           <p @click="_goToRank">查看排行榜>></p>
           <p @click="_goToTop10">查看通关前十名>></p>
@@ -80,8 +97,27 @@
       </div>
     </div>
     <alert-dialog v-if="showGetGold" @closeAlert="_closeAlert" :getType="type"></alert-dialog>
-    <img v-if="showDiamon" src="/static/images/alert/diamon.png" class="diamon">
-    <img :src="imagesSrc.hats[hatType]"  class="diamon" v-if="showHat">
+    <!--<img v-if="showDiamon" src="/static/images/alert/diamon.png" class="diamon">-->
+    <!--切题显示关卡-->
+    <!--<div class="showLevel" v-if="showLevel">
+      <div class="level-con">
+        <img src="/static/images/level_bg.png" class="level-bg">
+        <img src="/static/images/earth.png" class="earth">
+        <img src="/static/images/lines.png" class="lines">
+        <p class="level-text">第{{currentSequence}}关</p>
+      </div>
+    </div>-->
+    <p class="levelText"  v-if="showLevel">第{{currentSequence}}关</p>
+    <!--头衔(暂不采用)-->
+    <div class="showHats bounceInDown" :class="{big2: hidden}" v-if="showHats">
+      <img :src="imagesSrc.hats[hatType]" class="hat" :class="hatType">
+      <p class="text">{{hatText}}</p>
+    </div>
+    <!--扣减金币-->
+    <div class="deleteDiamond" v-if="showDelete">
+      <img src="/static/images/gold.png">
+      <p class="text">-10钻石</p>
+    </div>
   </div>
 </template>
 
@@ -92,10 +128,12 @@
   // import {alert} from '@/utils/wx'
   import {getAccessPassSubject, submitUserAnswer, getShareCoin, checkYoukeGoldCoin} from '@/utils/api'
   import iconButton from '@/components/icon-button'
+  import musicButton from '@/components/music-button'
   export default {
     data () {
       return {
         imagesSrc: {
+          // 头衔帽子
           hats: {
             stu_1: require('static/images/hats/stu_1.png'),
             stu_2: require('static/images/hats/stu_2.png'),
@@ -103,6 +141,14 @@
             stu_4: require('static/images/hats/stu_4.png'),
             stu_5: require('static/images/hats/stu_5.png'),
             stu_6: require('static/images/hats/stu_6.png')
+          },
+          // 头衔文字
+          hatsText: {
+            stu_text_1: require('static/images/hats/stu_text_1.png'),
+            stu_text_2: require('static/images/hats/stu_text_2.png'),
+            stu_text_3: require('static/images/hats/stu_text_3.png'),
+            stu_text_4: require('static/images/hats/stu_text_4.png'),
+            stu_text_5: require('static/images/hats/stu_text_5.png')
           },
           card: require('static/images/card/s1.png'),
           foot: require('static/images/foot_img.png'),
@@ -129,13 +175,13 @@
           perSequence: '', // 期数
           graId: '', // 年级
           mySequence: '', // 关卡序号
-          integral: '', // 积分
+          integral: '', // 金币
           viaTime: 0, // 总耗时
           wrongAnswer: '', // 错题
           rightAnswer: '' // 对题
         },
         showAlert: false,
-        success: '1',
+        success: '1', // 1：普通关卡 2：状元关卡 3：答错关卡 4：其他
         submitResult: {},
         currentSequence: 0, // 当前的关卡序号
         currentScore: '0', // 当前关卡获得分数
@@ -150,10 +196,23 @@
         showGetGold: false,
         type: 'getScore',
         showDiamon: false,
-        back: '0', // 返回
         titleUp: '0', // 头衔
-        showHat: false,
-        hatType: 'stu_0'
+        showHats: false,
+        hatType: 'stu_1',
+        hatsTextType: 'stu_text_1',
+        hatText: '恭喜晋升到童生！',
+        hidden: false,
+        showLevel: true,
+        cleanTime: null,
+        musicPosition: { // 开关按钮位置
+          t: '',
+          r: ''
+        },
+        showMusic: true, // 是否启动音效,默认启动
+        showDelete: false, // 游客钻石减去动效
+        flag: true,  // 答题期间离开答题
+        onceSubmit: false, // 防止网络延迟导致重复提交答案
+        onceAnswer: false // 防止每道题被多次点击
       }
     },
     computed: {},
@@ -179,7 +238,7 @@
             isUpdateTitle: _this.isUpdateTitle
           }
           getShareCoin(param).then((res) => {
-            if (res.data.msg !== '') {
+            if (res.success) {
               if (_this.isUpdateTitle) {
                 // 升头衔了
                 _this.showGetGold = true
@@ -188,11 +247,16 @@
                 } else {
                   _this.type = 'gold_diamon'
                 }
+                // 只能分享一次
+                _this.isUpdateTitle = false
               } else {
-                // 未升头衔
+                // 未升头衔,只有游客才加钻石
                 _this.showGetGold = true
-                _this.type = 'getGold'
-                _this.back = '1'
+                if (wx.getStorageSync('userType') === '3') {
+                  _this.type = 'getGold'
+                } else {
+                  _this.type = 'getScore2'
+                }
               }
             }
           })
@@ -200,25 +264,45 @@
       }
     },
     onLoad (options) {
+      this.showDelete = false
+      this.showLevel = false
+      clearTimeout(this.cleanTime)
       this.showAlert = false
       this._initCutDown()
       this.gradId = options.gradId
       this.getAccessPassSubject(options.id)
       this.currentSequence = parseInt(options.id)
       this.levelNum = parseInt(options.levelNum)
-      this.back = '0'
     },
-    onHide () {
-      this._initCutDown()
+    onUnload () {
+      let _this = this
+      if (this.flag) {
+        wx.showModal({
+          title: '提示',
+          content: '你选择了放弃本关……闯关失败！',
+          showCancel: false,
+          success (res) {
+            _this._initCutDown()
+            if (res.confirm) {
+              _this.wrongAnswer.push({
+                subject_id: _this.currentSub.subjectId,
+                userAnswer: ''
+              })
+              _this._submitAnswer(true)
+            }
+          }
+        })
+      }
     },
     mounted () {
     },
     methods: {
+      // 切换启动
+      _toggle () {
+        this.showMusic = !this.showMusic
+      },
       _closeAlert () {
         this.showGetGold = false
-        if (this.back === '1') {
-          this._back()
-        }
       },
       _back () {
         setTimeout(() => {
@@ -227,10 +311,7 @@
       },
       // 下一关
       _next () {
-        this.showAlert = false
-        console.log(this.currentSequence)
-        this.currentSequence++
-        if (this.currentSequence > this.levelNum) {
+        if (this.currentSequence >= this.levelNum) {
           wx.navigateBack()
           return
         }
@@ -239,45 +320,64 @@
             openid: wx.getStorageSync('openid')
           }
           let _this = this
-          // 游客登录需要金币是否足够
+          // 游客登录需要钻石是否足够
           checkYoukeGoldCoin(data).then((res) => {
             if (res.success) {
-              _this.showDiamon = true
+              // _this.showDiamon = true
+              /* this.showDelete = true
+              wx.showToast({
+                title: '-10钻石',
+                image: '/static/images/gold.png'
+              }) */
+              this.showDelete = true
               setTimeout(() => {
-                _this.getAccessPassSubject(this.currentSequence)
-                _this.showDiamon = false
-              }, 1000)
+                _this.currentSequence++
+                _this.getAccessPassSubject(_this.currentSequence)
+                _this.showDelete = false
+              }, 1500)
             } else {
               _this.showGetGold = true
               _this.type = 'goldNull'
+              return
             }
+            this.showAlert = false
           })
         } else {
+          this.currentSequence++
+          this.showAlert = false
           this.getAccessPassSubject(this.currentSequence)
         }
       },
       // 再玩一次
       _again () {
-        this.showAlert = false
         if (wx.getStorageSync('userData').weixinObj.usertype === '3') {
           let data = {
             openid: wx.getStorageSync('openid')
           }
-          // 游客登录需要金币是否足够
+          // 游客登录需要钻石是否足够
           let _this = this
           checkYoukeGoldCoin(data).then((res) => {
             if (res.success) {
-              _this.showDiamon = true
+              this.showDelete = true
+              // _this.showDiamon = true
+              /* wx.showToast({
+                title: '-10钻石',
+                image: '/static/images/gold.png'
+              }) */
               setTimeout(() => {
-                _this.getAccessPassSubject(this.currentSequence)
-                _this.showDiamon = false
-              }, 1000)
+                _this.getAccessPassSubject(_this.currentSequence)
+                // _this.showDiamon = false
+                _this.showDelete = false
+              }, 1500)
             } else {
               _this.showGetGold = true
               _this.type = 'goldNull'
+              return
             }
+            this.showAlert = false
           })
         } else {
+          this.showAlert = false
           this.getAccessPassSubject(this.currentSequence)
         }
       },
@@ -286,8 +386,15 @@
         this.showAlert = true
         this.success = res
       },
+      // 答题限制
+      _limitAnswer (val) {
+        if (this.onceAnswer) {
+          this._answer(val)
+        }
+      },
       // 答题
       _answer (answer) {
+        this.onceAnswer = false
         this._initCutDown()
         this.userAnswer = answer
         if (answer !== this.currentSub.rightAnswer) {
@@ -296,19 +403,32 @@
             subject_id: this.currentSub.subjectId,
             userAnswer: answer
           })
-          this._submitAnswer()
+          if (this.onceSubmit) {
+            this._submitAnswer()
+          }
           return
         } else {
           this.rightAnswer.push({
             subject_id: this.currentSub.subjectId,
             userAnswer: answer
           })
+          if (this.showMusic) {
+            let innerAudioContext = wx.createInnerAudioContext()
+            innerAudioContext.autoplay = true
+            innerAudioContext.src = '/static/music_true.mp3'
+            innerAudioContext.onPlay(() => {
+              console.log('开始播放')
+            })
+          }
           console.log(`正确答案${this.currentNum}：`, this.rightAnswer)
         }
         if (this.currentNum < this.total) {
           this.currentNum++
         } else {
-          this._submitAnswer()
+          console.log(this.onceSubmit, 'dd')
+          if (this.onceSubmit) {
+            this._submitAnswer()
+          }
           return
         }
         // 切题
@@ -318,7 +438,9 @@
         }, 600)
       },
       // 提交答案
-      _submitAnswer () {
+      _submitAnswer (type) {
+        this.flag = false
+        this.onceSubmit = false
         console.log('提交答案')
         this.isUpdateTitle = false
         this.submitAnswer.openid = wx.getStorageSync('openid')
@@ -330,28 +452,82 @@
             if (res.data.flag) {
               // 当前关卡获得分数
               this.currentScore = res.data.viaRepScore
-              this.currentRank = res.data.stuRank
+              this.currentRank = res.data.stuRank === '0' ? '-' : res.data.stuRank
               this.topScore = res.data.topScore
               this.isUpdateTitle = res.data.isUpdateTitle
-              const innerAudioContext = wx.createInnerAudioContext()
-              innerAudioContext.autoplay = true
-              innerAudioContext.src = '/static/success.mp3'
-              innerAudioContext.onPlay(() => {
-                console.log('开始播放')
-              })
+              if (this.showMusic && !type) {
+                let innerAudioContext = wx.createInnerAudioContext()
+                innerAudioContext.autoplay = true
+                innerAudioContext.src = '/static/success.mp3'
+                innerAudioContext.onPlay(() => {
+                  console.log('开始播放')
+                })
+              }
+              /*
               if (this.titleUp === '6' && res.data.isUpdateTitle) {
                 this._result('2')
               } else {
                 this._result('1')
               }
+              */
+              // 状元前五升头衔效果提示
+              if (res.data.isUpdateTitle) {
+                if (this.titleUp === '6') {
+                  this._result('2')
+                } else {
+                  this.hatType = `stu_${this.titleUp}`
+                  this.hatsTextType = `stu_text_${this.titleUp}`
+                  this._result('4')
+                }
+              } else {
+                this._result('1')
+              }
+              // 状元前五升头衔效果提示
+              /*
+              if (res.data.isUpdateTitle) {
+                if (this.titleUp !== '6') {
+                  this.showHats = true
+                  this.hatType = `stu_${this.titleUp}`
+                  let text = ''
+                  switch (this.titleUp) {
+                    case '1':
+                      text = '童生'
+                      break
+                    case '2':
+                      text = '秀才'
+                      break
+                    case '3':
+                      text = '举人'
+                      break
+                    case '4':
+                      text = '贡士'
+                      break
+                    case '5':
+                      text = '进士'
+                      break
+                  }
+                  this.hatText = `恭喜你晋升到${text}！`
+                  this.hidden = false
+                  let _this = this
+                  setTimeout(() => {
+                    _this.hidden = true
+                  }, 3000)
+                  setTimeout(() => {
+                    _this.showHats = false
+                  }, 4000)
+                }
+              }
+              */
             } else {
               this._result('3')
-              const innerAudioContext = wx.createInnerAudioContext()
-              innerAudioContext.autoplay = true
-              innerAudioContext.src = '/static/fail.mp3'
-              innerAudioContext.onPlay(() => {
-                console.log('开始播放')
-              })
+              if (this.showMusic && !type) {
+                let innerAudioContext = wx.createInnerAudioContext()
+                innerAudioContext.autoplay = true
+                innerAudioContext.src = '/static/fail.mp3'
+                innerAudioContext.onPlay(() => {
+                  console.log('开始播放')
+                })
+              }
             }
           } else {
             wx.showToast({
@@ -363,6 +539,7 @@
       },
       // 获取题目
       getAccessPassSubject (opt) {
+        this.onceSubmit = true
         this.wrongAnswer = []
         this.rightAnswer = []
         wx.showLoading({
@@ -391,8 +568,6 @@
             this.submitAnswer.mySequence = res.data.ckOjbMsg.sequence
             // 当前题号
             this.currentNum = 1
-            // 初始化第一题
-            this.setCurrentSub(0)
           } else {
             wx.showToast({
               title: res.desc,
@@ -403,9 +578,19 @@
             })
           }
         })
+        this.showLevel = true
+        console.log(this.showLevel, 'this.showLevel')
+        let _this = this
+        this.cleanTime = setTimeout(function () {
+          _this.showLevel = false
+          // 初始化第一题
+          _this.setCurrentSub(0)
+        }, 2000)
       },
       // 设置当前题目
       setCurrentSub (i) {
+        this.onceAnswer = true
+        this.flag = true
         // 清除用户答案
         this.userAnswer = ''
         // 清空旧题
@@ -465,7 +650,9 @@
               subject_id: _this.currentSub.subjectId,
               userAnswer: _this.userAnswer
             })
-            _this._submitAnswer()
+            if (_this.onceSubmit) {
+              _this._submitAnswer()
+            }
             return false
           }
           _this.cutDown()
@@ -490,7 +677,8 @@
       stuCard,
       foot,
       iconButton,
-      alertDialog
+      alertDialog,
+      musicButton
     }
   }
 </script>
@@ -508,8 +696,11 @@
     box-sizing: border-box;
   }
   .question .text{
-    padding: 75rpx 65rpx 60rpx 90rpx;
+    padding: 75rpx 60rpx 60rpx;
     font-size: 38rpx;
+    word-wrap: break-word;
+    display: block;
+    word-break: break-all;
   }
   .question .pro-bar{
     position: absolute;
@@ -740,6 +931,45 @@
     height: 414rpx;
     opacity: 0;
   }
+  /*头衔文字*/
+  .alert-dialog .success .pg .hatText{
+    position: absolute;
+    z-index: 0;
+    right: 35rpx;
+    top: -160rpx;
+    width: 419rpx;
+    height: 165rpx;
+  }
+  /*头衔帽子*/
+  .alert-dialog .success .pg .hat{
+    position: absolute;
+    z-index: 0;
+    right: 56rpx;
+    bottom: 0;
+    margin-bottom:123rpx;
+    transform:scale(1.1);
+  }
+  .pg .hat.stu_1{
+    width: 360rpx;
+    height: 232rpx;
+  }
+  .pg .hat.stu_2{
+    width: 360rpx;
+    height: 195rpx;
+  }
+  .pg .hat.stu_3{
+    width: 360rpx;
+    height: 186rpx;
+    margin-top: 46rpx;
+  }
+  .pg .hat.stu_4{
+    width: 360rpx;
+    height: 190rpx;
+  }
+  .pg .hat.stu_5{
+    width: 360rpx;
+    height: 165rpx;
+  }
   .alert-dialog .success .pg .p1{
     position: absolute;
     z-index: 0;
@@ -774,7 +1004,7 @@
       transform: translateY(30rpx);
     }
   }
-  /*积分排名*/
+  /*金币排名*/
   .alert-dialog .success .get{
     position: absolute;
     z-index: 10;
@@ -1112,5 +1342,196 @@
       transform: scale(2);
       opacity: 0;
     }
+  }
+  .big2{
+    animation: big2 1s linear 0s forwards;
+  }
+  @keyframes big2 {
+    0% {
+      transform: scale(1);
+    }
+    100%{
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  /*头衔*/
+  .showHats {
+    position: absolute;
+    z-index: 9999;
+    top: 298rpx;
+    left: 76rpx;
+    width: 600rpx;
+    height: auto;
+  }
+  .showHats .hat{
+    display: block;
+    margin: 0 auto;
+  }
+  .showHats .hat.stu_1{
+    width: 360rpx;
+    height: 232rpx;
+    margin-bottom: 0;
+  }
+  .showHats .hat.stu_2{
+    width: 360rpx;
+    height: 195rpx;
+    margin-top: 37rpx;
+  }
+  .showHats .hat.stu_3{
+    width: 360rpx;
+    height: 186rpx;
+    margin-top: 46rpx;
+  }
+  .showHats .hat.stu_4{
+    width: 360rpx;
+    height: 190rpx;
+    margin-top: 42rpx;
+  }
+  .showHats .hat.stu_5{
+    width: 360rpx;
+    height: 165rpx;
+    margin-top: 67rpx;
+  }
+  .showHats p.text{
+    font-size: 32rpx;
+    text-align: center;
+    color: #450000;
+    font-weight: 900;
+    padding:20rpx 0 60rpx 0;
+  }
+  /*显示关卡*/
+  .showLevel{
+    position: absolute;
+    left: 0;
+    top: 50%;
+    z-index: 999;
+    width: 115%;
+    height: 290rpx;
+    margin-top: -145rpx;
+    transform: translateX(-100%);
+    animation: moveRight 3s linear forwards;
+  }
+  @keyframes moveRight {
+    0% {
+      transform: translateX(-100%);
+    }
+    20% {
+      transform: translateX(0%);
+    }
+    80% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  .showLevel .level-con{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-size: 0;
+  }
+  .showLevel .level-con .level-bg{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+  .showLevel .level-con .earth{
+    position: absolute;
+    bottom: 45rpx;
+    left: 35%;
+    z-index: 2;
+    width: 150rpx;
+    height: 200rpx;
+    margin-left: -170rpx;
+  }
+  .showLevel .level-con .lines{
+    position: absolute;
+    left: 35%;
+    bottom: 16rpx;
+    z-index: 2;
+    width: 430rpx;
+    height: 90rpx;
+    margin-left: -134rpx;
+  }
+  .showLevel .level-con p{
+    position: absolute;
+    left: 36%;
+    bottom: 52rpx;
+    z-index: 3;
+    font-size: 80rpx;
+    color: #ffffff;
+  }
+  .levelText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    font-size: 98rpx;
+    z-index: 999;
+    color: #ffcc66;
+    font-weight: 700;
+    text-shadow: 4rpx 4rpx 0px #fff;
+    opacity: 1;
+    animation: hide 2s linear forwards;
+  }
+  @keyframes hide {
+    0% {
+       opacity: 0;
+     }
+    30% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .deleteDiamond{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -200rpx;
+    margin-top:-150rpx;
+    width: 400rpx;
+    font-size: 0;
+    animation: big 1.5s linear 0s forwards;
+  }
+  .big{
+    animation: big 1s linear 0s forwards;
+  }
+  @keyframes big {
+    0% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100%{
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  .deleteDiamond img{
+    display: block;
+    margin: 0 auto;
+    width: 180rpx;
+    height: 170rpx;
+  }
+  .deleteDiamond p{
+    width: 100%;
+    text-align: center;
+    font-size: 48rpx;
+    color: #2384be;
+    padding: 30rpx 0;
   }
 </style>

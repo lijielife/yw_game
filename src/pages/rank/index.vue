@@ -47,7 +47,7 @@
       <div class="rank">
         <img src="/static/images/rank/rank_bg.png" class="rank-img">
         <scroll-view class="rank-con" scroll-y>
-          <div class="item" v-for="(item, index) in rankData" :key="item.openid">
+          <div class="item" v-for="(item, index) in rankData" :key="item.openid" v-if="index > 2">
             <span class="no">{{index + 1}}</span>
             <span class="name">{{item.name}}</span>
             <span class="score">{{item.score}}</span>
@@ -62,7 +62,12 @@
           <div class="avatar">
             <open-data type="userAvatarUrl" ></open-data>
           </div>
-          <span class="name"><open-data type="userNickName"></open-data></span>
+          <span class="name" v-if="teacherType === '1'">
+            <open-data type="userNickName"></open-data>
+          </span>
+          <span class="name" v-else>
+            {{userData.username || userData.nickName2}}
+          </span>
         </div>
         <div class="user-rank">
           <div class="score">
@@ -77,6 +82,7 @@
               <icon-button :imgUrl="imagesSrc.share_btn"></icon-button>
             </button>
           </div>
+          <p class="share-tip">分享有奖励</p>
         </div>
       </div>
     </div>
@@ -99,7 +105,8 @@
         userData: {},
         stuRank: [],
         showGetGold: false,
-        type: 'getGold'
+        type: 'getGold',
+        teacherType: ''
       }
     },
     components: {
@@ -108,6 +115,7 @@
     },
     onShow () {
       this.stuRanking()
+      this.teacherType = wx.getStorageSync('userType')
     },
     // 分享
     onShareAppMessage () {
@@ -128,8 +136,13 @@
           }
           getShareCoin(param).then((res) => {
             console.log(res)
-            if (res.data.msg !== '') {
+            if (res.success) {
               _this.showGetGold = true
+              if (wx.getStorageSync('userType') === '3') {
+                _this.type = 'getGold'
+              } else {
+                _this.type = 'getScore2'
+              }
             }
           })
         }
@@ -152,7 +165,7 @@
               }
               this.rankData.push({
                 openid: item.openid,
-                name: item.nickName2,
+                name: item.usertype === '3' ? item.nickName2 : item.username,
                 score: item.integralCount,
                 avatarUrl: item.avatarUrl
               })
@@ -165,8 +178,9 @@
               }
             }
             this.rankData.sort((a, b) => {
-              return parseInt(b.integralCount) - parseInt(a.integralCount)
+              return parseInt(b.score) - parseInt(a.score)
             })
+            console.log(this.rankData)
             for (let i = 0; i <= this.rankData.length; i++) {
               if (this.userData.openid === this.rankData[i].openid) {
                 this.userData.no = i + 1
@@ -327,7 +341,7 @@
   .rank{
     position: relative;
     width: 488rpx;
-    min-height:500rpx;
+    height: 540rpx;
     margin: -14rpx auto 0;
   }
   .rank-img{
@@ -341,6 +355,7 @@
     height: 100%;
     box-sizing: border-box;
     padding: 50rpx 10rpx 14rpx 10rpx;
+    overflow-y: auto;
   }
   .rank-con .item{
     width: 100%;
@@ -426,7 +441,7 @@
   .share .share-con .user-rank .score .score-img{
     display: inline-block;
     width: 50rpx;
-    height: 45rpx;
+    height: 50rpx;
   }
   .share .share-con .user-rank .score span{
     display: inline-block;
@@ -446,8 +461,11 @@
     margin: 8rpx 0;
   }
   .share .share-con .share-btn .share-tip{
-    width: 143rpx;
-    height: 23rpx;
+    font-size: 24rpx;
+    text-align: left;
+    margin-top: -5rpx;
+    text-indent: 10rpx;
+
   }
   /*动画 人物左右摇动*/
   .jackInTheBox{

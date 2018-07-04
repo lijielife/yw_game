@@ -65,7 +65,7 @@
             res.data.forEach((item) => {
               this.top10.push({
                 imageUrl: item.avatarUrl,
-                name: item.nickname,
+                name: item.username || item.nickname,
                 score: item.topScore
               })
             })
