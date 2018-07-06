@@ -539,6 +539,7 @@
       },
       // 获取题目
       getAccessPassSubject (opt) {
+        this.showLevel = true
         this.onceSubmit = true
         this.wrongAnswer = []
         this.rightAnswer = []
@@ -568,6 +569,13 @@
             this.submitAnswer.mySequence = res.data.ckOjbMsg.sequence
             // 当前题号
             this.currentNum = 1
+
+            let _this = this
+            this.cleanTime = setTimeout(function () {
+              _this.showLevel = false
+              // 初始化第一题
+              _this.setCurrentSub(0)
+            }, 2000)
           } else {
             wx.showToast({
               title: res.desc,
@@ -578,14 +586,6 @@
             })
           }
         })
-        this.showLevel = true
-        console.log(this.showLevel, 'this.showLevel')
-        let _this = this
-        this.cleanTime = setTimeout(function () {
-          _this.showLevel = false
-          // 初始化第一题
-          _this.setCurrentSub(0)
-        }, 2000)
       },
       // 设置当前题目
       setCurrentSub (i) {

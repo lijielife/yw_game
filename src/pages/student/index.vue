@@ -527,6 +527,11 @@
                 this.currentGradName = val.gradName
               }
             }
+            /* 未选过年级 */
+            if (res.data.userObj.graId === '0') {
+              this.showSelGrad = true
+              this.hideClose = true
+            }
             wx.setStorageSync('userData', res.data)
             wx.setStorageSync('graId', res.data.userObj.graId)
             wx.setStorageSync('perSequence', res.data.userObj.perSequence)
@@ -544,9 +549,6 @@
               icon: 'none'
             })
           }
-        }).catch((err) => {
-          console.log(err)
-          this.goToPage('wxLogin')
         })
       },
       // 老师查看错题集
@@ -581,7 +583,6 @@
           _this.shakeN = 0
           _this.goToPage('level', param)
         }, 250)
-        // this.goToPage('level', param)
       },
       // 学生跳转错题本
       goToPageWrongBook (n) {
@@ -609,7 +610,6 @@
       }
     },
     onLoad (opt) {
-      console.log(wx.getBackgroundAudioManager(), '123')
       if (opt.openid) { // 用户分享进入
         wx.setStorageSync('shareOpenid', opt.openid)
       }
