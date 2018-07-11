@@ -37,6 +37,7 @@ export default {
     console.log('load', res)
   },
   onShow () {
+    wx.setStorageSync('onceSend', true)
     console.log('show')
   },
   created () {

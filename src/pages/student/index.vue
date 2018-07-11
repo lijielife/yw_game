@@ -52,135 +52,140 @@
           <status-card :text="sea"></status-card>
         </div>
       </div>
-      <div class="con" v-if="userType !== '1'">
-        <div class="buttonGroup">
-          <div class="btn-item">
-            <div class="btn flipInY" v-if="userType === '3'">
-              <shadow-button :imgUrl="imagesSrc.stu" :borderRadius="'25rpx'" @tapEvent="goToStuLogin"></shadow-button>
-            </div>
-            <div class="btn flipInY" v-else>
-              <img :src="imagesSrc.stuNull" style="width: 100%; height: 100%;border-radius: 25rpx">
-            </div>
-          </div>
-          <div class="btn-item">
-            <div class="btn flipInY" v-if="userType === '3'">
-              <shadow-button :imgUrl="imagesSrc.teach" :borderRadius="'25rpx'" @tapEvent="goToTeachLogin"></shadow-button>
-            </div>
-            <div class="btn flipInY" v-else>
-              <img :src="imagesSrc.teachNull" style="width: 100%; height: 100%;border-radius: 25rpx">
-            </div>
-          </div>
-          <div class="btn-item">
-            <div class="btn flipInY">
-              <shadow-button :imgUrl="imagesSrc.help" :borderRadius="'25rpx'" @tapEvent="goToPage('helper')"></shadow-button>
-            </div>
-          </div>
-        </div>
-        <div class="cardGroup">
-          <div class="card flipInX" @click="goToPageLevel(1)">
-            <stu-card :imgUrl="imagesSrc.cards.s1">
-              <div class="card-con">
-                <div class="rocket card-img1" :class="{shake: shakeN === 1}">
-                  <img src="/static/images/rocket.png">
+          <div class="con" v-if="userType !== '1'">
+            <div class="buttonGroup">
+              <div class="btn-item">
+                <div class="btn flipInY" v-if="userType === '3'">
+                  <shadow-button :imgUrl="imagesSrc.stu" :borderRadius="'25rpx'" @tapEvent="goToStuLogin"></shadow-button>
                 </div>
-                <div class="card-info">
-                  <div class="answer card-img2">
-                    <img src="/static/images/answer.png">
-                  </div>
-                  <div class="text">
-                    <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
-                    <div><span>{{sea}}</span></div>
-                    <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
-                  </div>
+                <div class="btn flipInY" v-else>
+                  <img :src="imagesSrc.stuNull" style="width: 100%; height: 100%;border-radius: 25rpx">
                 </div>
               </div>
-            </stu-card>
-          </div>
-          <div class="card flipInX"  @click="goToPageWrongBook(2)">
-            <stu-card :imgUrl="imagesSrc.cards.s2">
-              <div class="card-con">
-                <div class="book card-img1" :class="{shake: shakeN === 2}">
-                  <img src="/static/images/book.png">
+              <div class="btn-item">
+                <div class="btn flipInY" v-if="userType === '3'">
+                  <shadow-button :imgUrl="imagesSrc.teach" :borderRadius="'25rpx'" @tapEvent="goToTeachLogin"></shadow-button>
                 </div>
-                <div class="card-info">
-                  <div class="wrong_book card-img2">
-                    <img src="/static/images/wrong_book.png">
-                  </div>
-                  <div class="text">
-                    <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
-                    <div><span>{{sea}}</span></div>
-                    <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
-                  </div>
+                <div class="btn flipInY" v-else>
+                  <img :src="imagesSrc.teachNull" style="width: 100%; height: 100%;border-radius: 25rpx">
                 </div>
               </div>
-            </stu-card>
-          </div>
-          <div class="card flipInX" style="height: 190rpx;" @click="goToPage('rank')">
-            <stu-card :imgUrl="imagesSrc.cards.s3">
-              <div class="card-con">
-                <div class="rank">
-                  <img src="/static/images/rank.png">
+              <div class="btn-item">
+                <div class="btn flipInY">
+                  <shadow-button :imgUrl="imagesSrc.help" :borderRadius="'25rpx'" @tapEvent="goToPage('helper')"></shadow-button>
                 </div>
-                <div class="rank-info">
-                  <div class="rank-item stu" style="margin-left: 0;" v-if="studentRanking.length > 1">
-                    <div class="rank-img">
-                      <img :src="studentRanking[1].avatarUrl" alt="" style="width: 100%; height: 100%">
-                      <div class="rank-icon" style="width: 61rpx;height: 48rpx;">
-                        <!--<img :src="imagesSrc.ranking.sec" alt="">-->
-                        <img src="/static/images/sec.png">
+              </div>
+            </div>
+            <div class="cardGroup">
+              <form report-submit @submit="formSubmit">
+                <button formType="submit">
+                  <div class="card flipInX" @click="goToPageLevel(1)">
+                    <stu-card :imgUrl="imagesSrc.cards.s1">
+                      <div class="card-con">
+                        <div class="rocket card-img1" :class="{shake: shakeN === 1}">
+                          <img src="/static/images/rocket.png">
+                        </div>
+                        <div class="card-info">
+                          <div class="answer card-img2">
+                            <img src="/static/images/answer.png">
+                          </div>
+                          <div class="text">
+                            <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                            <div><span>{{sea}}</span></div>
+                            <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
+                          </div>
+                        </div>
+                      </div>
+                    </stu-card>
+                  </div>
+                </button>
+              </form>
+              <div class="card flipInX"  @click="goToPageWrongBook(2)">
+                <stu-card :imgUrl="imagesSrc.cards.s2">
+                  <div class="card-con">
+                    <div class="book card-img1" :class="{shake: shakeN === 2}">
+                      <img src="/static/images/book.png">
+                    </div>
+                    <div class="card-info">
+                      <div class="wrong_book card-img2">
+                        <img src="/static/images/wrong_book.png">
+                      </div>
+                      <div class="text">
+                        <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                        <div><span>{{sea}}</span></div>
+                        <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
                       </div>
                     </div>
-                    <div class="rank-name">
-                      <div class="name">{{studentRanking[1].username || studentRanking[1].nickName2 || studentRanking[1].nickName}}</div>
-                      <div class="score">
+                  </div>
+                </stu-card>
+              </div>
+              <div class="card flipInX" style="height: 190rpx;" @click="goToPage('rank')">
+                <stu-card :imgUrl="imagesSrc.cards.s3">
+                  <div class="card-con">
+                    <div class="rank">
+                      <img src="/static/images/rank.png">
+                    </div>
+                    <div class="rank-info">
+                      <div class="rank-item stu" style="margin-left: 0;" v-if="studentRanking.length > 1">
+                        <div class="rank-img">
+                          <img :src="studentRanking[1].avatarUrl" alt="" style="width: 100%; height: 100%">
+                          <div class="rank-icon" style="width: 61rpx;height: 48rpx;">
+                            <!--<img :src="imagesSrc.ranking.sec" alt="">-->
+                            <img src="/static/images/sec.png">
+                          </div>
+                        </div>
+                        <div class="rank-name">
+                          <div class="name">{{studentRanking[1].username || studentRanking[1].nickName2 || studentRanking[1].nickName}}</div>
+                          <div class="score">
                       <span class="icon">
                         <!--<img :src="imagesSrc.score" alt="">-->
                         <img src="/static/images/score.png" alt="">
                       </span>
-                        {{studentRanking[1].integralCount}}
+                            {{studentRanking[1].integralCount}}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div class="rank-item stu" v-if="studentRanking.length">
-                    <div class="rank-img">
-                      <img :src="studentRanking[0].avatarUrl" alt="" style="width: 100%; height: 100%">
-                      <div class="rank-icon" style="width: 70rpx;height: 44rpx;">
-                        <img src="/static/images/fir.png">
-                      </div>
-                    </div>
-                    <div class="rank-name">
-                      <div class="name">{{studentRanking[0].username || studentRanking[0].nickName2 || studentRanking[0].nickName}}</div>
-                      <div class="score">
+                      <div class="rank-item stu" v-if="studentRanking.length">
+                        <div class="rank-img">
+                          <img :src="studentRanking[0].avatarUrl" alt="" style="width: 100%; height: 100%">
+                          <div class="rank-icon" style="width: 70rpx;height: 44rpx;">
+                            <img src="/static/images/fir.png">
+                          </div>
+                        </div>
+                        <div class="rank-name">
+                          <div class="name">{{studentRanking[0].username || studentRanking[0].nickName2 || studentRanking[0].nickName}}</div>
+                          <div class="score">
                       <span class="icon">
                         <img src="/static/images/score.png" alt="">
                       </span>
-                        {{studentRanking[0].integralCount}}
+                            {{studentRanking[0].integralCount}}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div class="rank-item stu" v-if="studentRanking.length > 2">
-                    <div class="rank-img">
-                      <img :src="studentRanking[2].avatarUrl" alt="" style="width: 100%; height: 100%">
-                      <div class="rank-icon" style="width: 55rpx;height: 44rpx;">
-                        <img src="/static/images/thir.png">
-                      </div>
-                    </div>
-                    <div class="rank-name">
-                      <div class="name">{{studentRanking[2].nickName || studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
-                      <div class="score">
+                      <div class="rank-item stu" v-if="studentRanking.length > 2">
+                        <div class="rank-img">
+                          <img :src="studentRanking[2].avatarUrl" alt="" style="width: 100%; height: 100%">
+                          <div class="rank-icon" style="width: 55rpx;height: 44rpx;">
+                            <img src="/static/images/thir.png">
+                          </div>
+                        </div>
+                        <div class="rank-name">
+                          <div class="name">{{studentRanking[2].nickName || studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
+                          <div class="score">
                       <span class="icon">
                         <img src="/static/images/score.png" alt="">
                       </span>
-                        {{studentRanking[2].integralCount}}
+                            {{studentRanking[2].integralCount}}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </stu-card>
               </div>
-            </stu-card>
+            </div>
           </div>
-        </div>
-      </div>
+
       <div class="con" v-if="userType === '1'" style="max-height: 810rpx;overflow-y: auto;margin-top: 50rpx;">
         <div class="t-card flipInX" @click="goToWronBook">
           <stu-card :imgUrl="imagesSrc.cards.s1">
@@ -194,18 +199,22 @@
             </div>
           </stu-card>
         </div>
-        <div class="t-card flipInX"  @click="goToPageLevel">
-          <stu-card :imgUrl="imagesSrc.cards.s2">
-            <div class="tcard-con">
-              <h1 class="cGray">答题闯关</h1>
-              <div class="text">
-                <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
-                <div><span>{{sea}}</span></div>
-                <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
-              </div>
+        <form report-submit @submit="formSubmit">
+          <button formType="submit">
+            <div class="t-card flipInX"  @click="goToPageLevel">
+              <stu-card :imgUrl="imagesSrc.cards.s2">
+                <div class="tcard-con">
+                  <h1 class="cGray">答题闯关</h1>
+                  <div class="text">
+                    <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
+                    <div><span>{{sea}}</span></div>
+                    <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
+                  </div>
+                </div>
+              </stu-card>
             </div>
-          </stu-card>
-        </div>
+          </button>
+        </form>
         <!--老师课程-->
         <div class="t-list" v-if="userData.teaClassMsg.length">
           <div class="t-card flipInX" v-for="(classItem, index) in userData.teaClassMsg" @click="_goToTeacherRank(classItem)" :key="classItem.subjectsClassID">
@@ -249,6 +258,8 @@
         </div>
       </div>
     </div>
+
+
     <!--底部-->
     <foot :imgUrl="imagesSrc.foot" v-if="userData.userObj"></foot>
     <!--微信授权登录-->
@@ -330,7 +341,7 @@
   import stuCard from '@/components/stu-card'
   import iconButton from '@/components/icon-button'
   import wxLogin from '@/components/wxLogin'
-  import {getUserData, teaMain, checkUser, gradeChange} from '@/utils/api'
+  import {getUserData, teaMain, checkUser, gradeChange, sendWxFromId} from '@/utils/api'
   import {changeNum} from '@/utils/index'
   import {grads, season} from '@/utils/baseUrl'
 
@@ -384,7 +395,9 @@
         title_text: '新手', // 头衔名称
         hideClose: false, // 设置是否隐藏角色选年级的关闭按钮
         sea: '', // 年份季节
-        showTip: false // 显示提示助手
+        showTip: false, // 显示提示助手
+        formId: '',
+        onceSend: true
       }
     },
     computed: {
@@ -402,6 +415,23 @@
     created () {
     },
     methods: {
+      formSubmit (e) {
+        console.log('form发生了submit事件，携带数据为：', e.target.formId)
+        this.formId = e.target.formId
+        let param = {
+          openid: wx.getStorageSync('openid'),
+          formid: e.target.formId
+        }
+        if (this.onceSend) {
+          sendWxFromId(param).then((res) => {
+            console.log(res)
+            if (res.success) {
+              this.onceSend = false
+              wx.setStorageSync('onceSend', false)
+            }
+          })
+        }
+      },
       // 跳转小助手
       _goToTip () {
         this.showTip = false
@@ -619,6 +649,8 @@
       }
     },
     onShow (opt) {
+      // 设定发送一次formid
+      this.onceSend = wx.getStorageSync('onceSend')
       console.log('show-main', opt)
       if (wx.getStorageSync('openid')) {
         // 校验是否当期
@@ -1225,5 +1257,12 @@
     100% {
       transform: rotate(-10deg)
     }
+  }
+  form button{
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    border-radius: 0;
+    overflow: inherit;
   }
 </style>

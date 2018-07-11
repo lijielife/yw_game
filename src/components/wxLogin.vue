@@ -36,6 +36,7 @@
               wx.setStorageSync('openid', res.data.openid)
               wx.getUserInfo({
                 success: function (res1) {
+                  console.log(res1, 'user')
                   wx.setStorageSync('userInfo', res1.userInfo)
                 }
               })

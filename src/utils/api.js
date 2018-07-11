@@ -198,3 +198,12 @@ export async function gradeChange (data) {
   })
   return res
 }
+
+// 模板formid
+export async function sendWxFromId (data) {
+  const res = await request({
+    url: `${baseUrl}/studentContro/sendWxFromId`,
+    data: data
+  })
+  return res
+}
