@@ -212,7 +212,8 @@
         showDelete: false, // 游客钻石减去动效
         flag: true,  // 答题期间离开答题
         onceSubmit: false, // 防止网络延迟导致重复提交答案
-        onceAnswer: false // 防止每道题被多次点击
+        onceAnswer: false, // 防止每道题被多次点击
+        submitTimes: 3 // 限定提交次数
       }
     },
     computed: {},
@@ -403,16 +404,18 @@
             subject_id: this.currentSub.subjectId,
             userAnswer: answer
           })
-          if (this.onceSubmit) {
+          if (this.onceSubmit & this.submitTimes > 0) {
             this._submitAnswer()
           }
-          return
+          // return
         } else {
+          // 保存答案
           this.rightAnswer.push({
             subject_id: this.currentSub.subjectId,
             userAnswer: answer
           })
-          if (this.showMusic) {
+          // 播放音效
+          if (this.showMusic && wx.getStorageSync('versionSure') !== -1) {
             let innerAudioContext = wx.createInnerAudioContext()
             innerAudioContext.autoplay = true
             innerAudioContext.src = '/static/music_true.mp3'
@@ -420,22 +423,25 @@
               console.log('开始播放')
             })
           }
-          console.log(`正确答案${this.currentNum}：`, this.rightAnswer)
-        }
-        if (this.currentNum < this.total) {
-          this.currentNum++
-        } else {
-          console.log(this.onceSubmit, 'dd')
-          if (this.onceSubmit) {
-            this._submitAnswer()
+          // 判断是否答到最后一题
+          if (this.currentNum < this.total) { // 继续下一题
+            this.currentNum++
+            // 切题
+            let _this = this
+            let _timeout = setTimeout(() => {
+              _this.setCurrentSub(_this.currentNum - 1)
+              clearTimeout(_timeout)
+            }, 600)
+          } else { // 最后一题
+            console.log(this.onceSubmit, 'dd')
+            // 只能提交一次
+            if (this.onceSubmit & this.submitTimes > 0) {
+              this._submitAnswer()
+            }
+            // return
           }
-          return
         }
-        // 切题
-        let _this = this
-        setTimeout(() => {
-          _this.setCurrentSub(_this.currentNum - 1)
-        }, 600)
+        console.log(`正确答案${this.currentNum}：`, this.rightAnswer)
       },
       // 提交答案
       _submitAnswer (type) {
@@ -455,7 +461,7 @@
               this.currentRank = res.data.stuRank === '0' ? '-' : res.data.stuRank
               this.topScore = res.data.topScore
               this.isUpdateTitle = res.data.isUpdateTitle
-              if (this.showMusic && !type) {
+              if (this.showMusic && !type && wx.getStorageSync('versionSure') !== -1) {
                 let innerAudioContext = wx.createInnerAudioContext()
                 innerAudioContext.autoplay = true
                 innerAudioContext.src = '/static/success.mp3'
@@ -520,7 +526,7 @@
               */
             } else {
               this._result('3')
-              if (this.showMusic && !type) {
+              if (this.showMusic && !type && wx.getStorageSync('versionSure') !== -1) {
                 let innerAudioContext = wx.createInnerAudioContext()
                 innerAudioContext.autoplay = true
                 innerAudioContext.src = '/static/fail.mp3'
@@ -530,15 +536,25 @@
               }
             }
           } else {
-            wx.showToast({
-              title: res.desc,
-              icon: 'none'
-            })
+            if (this.submitTimes > 0) {
+              this.submitTimes--
+              this.onceSubmit = true
+              wx.showToast({
+                title: `${res.desc},请尝试再次提交！`,
+                icon: 'none'
+              })
+            } else {
+              wx.showToast({
+                title: `这次应该是程序错误了...请联系客服！`,
+                icon: 'none'
+              })
+            }
           }
         })
       },
       // 获取题目
       getAccessPassSubject (opt) {
+        this.submitTimes = 3
         this.showLevel = true
         this.onceSubmit = true
         this.wrongAnswer = []
@@ -571,7 +587,7 @@
             this.currentNum = 1
 
             let _this = this
-            this.cleanTime = setTimeout(function () {
+            this.cleanTime = setTimeout(() => {
               _this.showLevel = false
               // 初始化第一题
               _this.setCurrentSub(0)

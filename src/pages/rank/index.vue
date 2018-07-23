@@ -62,7 +62,7 @@
           <div class="avatar">
             <open-data type="userAvatarUrl" ></open-data>
           </div>
-          <span class="name" v-if="teacherType === '1'">
+          <span class="name" v-if="userData.username == '--'">
             <open-data type="userNickName"></open-data>
           </span>
           <span class="name" v-else>
@@ -154,38 +154,54 @@
       },
       stuRanking () {
         let param = {
-          openid: wx.getStorageSync('openid')
+          // openid: wx.getStorageSync('openid')
+          graId: wx.getStorageSync('graId')
         }
         this.rankData = []
+        this.userData = {}
+        wx.showLoading({
+          title: '数据加载中...'
+        })
         stuRanking(param).then((res) => {
           if (res.data.length) {
             res.data.forEach((item) => {
-              if (item.openid === wx.getStorageSync('openid')) {
-                this.userData = item
-              }
               this.rankData.push({
                 openid: item.openid,
                 name: item.usertype === '3' ? item.nickName2 : item.username,
                 score: item.integralCount,
                 avatarUrl: item.avatarUrl
               })
-            })
-            // 老师数据
-            if (wx.getStorageSync('userType') === '1') {
-              this.userData = {
-                integralCount: '--',
-                no: '--'
+              if (!this.userData.openid) {
+                if (item.openid === wx.getStorageSync('openid')) {
+                  this.userData = item
+                } else {
+                  this.userData = {
+                    integralCount: wx.getStorageSync('userData').userObj.integralCount || '--',
+                    no: '--',
+                    username: '--',
+                    nickName2: '--'
+                  }
+                }
               }
-            }
-            this.rankData.sort((a, b) => {
-              return parseInt(b.score) - parseInt(a.score)
             })
-            console.log(this.rankData)
+            wx.hideLoading()
+            /* this.rankData.sort((a, b) => {
+              return parseInt(b.score) - parseInt(a.score)
+            }) */
             for (let i = 0; i <= this.rankData.length; i++) {
               if (this.userData.openid === this.rankData[i].openid) {
                 this.userData.no = i + 1
               }
             }
+            // 老师数据
+            /* if (wx.getStorageSync('userType') === '1') {
+              this.userData = {
+                integralCount: '--',
+                no: '--',
+                username: '--',
+                nickName2: '--'
+              }
+            } */
           }
         })
       }

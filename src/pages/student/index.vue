@@ -205,7 +205,7 @@
               <stu-card :imgUrl="imagesSrc.cards.s2">
                 <div class="tcard-con">
                   <h1 class="cGray">答题闯关</h1>
-                  <div class="text">
+                  <div class="text" style="margin-top: -8px;">
                     <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
                     <div><span>{{sea}}</span></div>
                     <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>

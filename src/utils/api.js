@@ -85,7 +85,7 @@ export async function getUserData (data) {
 // 年级维度排行榜
 export async function stuRanking (data) {
   const res = await request({
-    url: `${baseUrl}/studentContro/stuRanking`,
+    url: `${baseUrl}/studentContro/stuRanking2`,
     data: data
   })
   return res
