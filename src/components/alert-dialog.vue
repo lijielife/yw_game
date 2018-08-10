@@ -6,10 +6,10 @@
       <img src="/static/images/alert/gold.png" class="conImg" v-if="getType === 'getScore' || getType === 'getScore2'">
       <img src="/static/images/alert/diamon_gold.png" class="conImg" v-if="getType === 'gold_diamon'">
       <img src="/static/images/alert/diamon_null.png" style="width: 519rpx" class="conImg" v-if="getType === 'goldNull'">
-      <p class="text" v-if="getType === 'getGold'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得20钻石！<br>可以继续闯关啦！</p>
+      <p class="text" v-if="getType === 'getGold'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得60钻石！<br>可以继续闯关啦！</p>
       <p class="text" v-if="getType === 'getScore'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得20金币！</p>
       <p class="text" v-if="getType === 'getScore2'">每成功邀请1位好友，将获得20金币！</p>
-      <p class="text" v-if="getType === 'gold_diamon'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得20钻石和20金币！<br>可以继续闯关啦！</p>
+      <p class="text" v-if="getType === 'gold_diamon'"><span class="fs">每成功邀请1位好友，将获得20金币！</span><br>已获得60钻石和20金币！<br>可以继续闯关啦！</p>
       <p class="text" v-if="getType === 'goldNull'">钻石不够了！<br>请分享后继续获得钻石吧！</p>
       <div class="btn" v-if="getType === 'goldNull'">
         <button open-type="share" plain="true" style="width: 100%;height: 100%;border: 0;text-align: left;padding: 0;">

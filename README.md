@@ -18,6 +18,7 @@ npm run build
 npm run build --report
 # 注意事项
 新增的页面需要重新 npm run dev 来进行编译
+
 ```
 ### 需求变更 => 06.15
  * `checkLogin`接口如果用户已注册需要返回用户类型
