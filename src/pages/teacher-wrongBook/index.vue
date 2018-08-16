@@ -184,7 +184,9 @@
           openid: wx.getStorageSync('openid'),
           perSequence: this.perSequence,
           graId: this.currentGradId,
-          ck_sequence: this.currentLevelno
+          ck_sequence: this.currentLevelno,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         reviewWrongSubject(param).then((res) => {
           wx.hideLoading()
@@ -224,6 +226,20 @@
               })
             }
           } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+              return
+            }
             wx.showToast({
               title: res.desc,
               icon: 'none'

@@ -26,7 +26,7 @@ export default {
     window: {
       backgroundTextStyle: 'light',
       navigationBarBackgroundColor: '#ffcc66',
-      navigationBarTitleText: '语文大闯关',
+      navigationBarTitleText: '语文闯关',
       navigationBarTextStyle: 'black'
     }
   }

@@ -6,11 +6,11 @@
     </div> -->
     <!--<music-button v-if="showMusicButton"></music-button>-->
     <!--用户头像-->
-    <div class="userinfo">
+    <div class="userinfo" v-if="!switchType">
       <open-data type="userAvatarUrl"></open-data>
     </div>
     <!--登录框-->
-    <div class="userLogin">
+    <div class="userLogin" v-if="!switchType">
       <div class="item" v-if="loginType !== 1">
         <div class="phone input"  @click="_shake(1)">
           <label for="phone"  :class="{shake: shakeN === 1}">
@@ -29,7 +29,7 @@
         <div class="code_btn">
           <div class="code_bg">
             <icon-button :imgUrl="imagesUrl.btn" @tapEvent="_getCode">
-              <span v-if="!start">验证码</span>
+              <span v-if="!start">获取验证码</span>
             </icon-button>
             <span class="getCode" v-if="start">等待{{time}}s</span>
           </div>
@@ -64,10 +64,33 @@
         <icon-button :imgUrl="imagesUrl.login" @tapEvent="_submit(2)" v-if="loginType !== 1"></icon-button>
       </div>
       <div class="item">
-        <a class="go" @click="_submit(3)">我还不是卓越学生</a>
+        <a class="go" @click="_submit(3)">我未报读秋季课程</a>
         <a class="go" @click="loginType = 1" v-if="loginType !== 1">老师登录</a>
         <a class="go" @click="loginType = 2" v-if="loginType !== 2">学生登录</a>
       </div>
+    </div>
+    <div class="switchUser" v-if="switchType">
+      <div class="panel-tip">
+        <div class="img-con">
+          <img src="/static/images/card/s1.png" alt="">
+          <p>轻点姓名以切换账号</p>
+        </div>
+        <img src="/static/images/pen.png" class="pen" alt="">
+        <img src="/static/images/pen.png" class="pen pen_r" alt="">
+      </div>
+      <ul class="wxUser">
+        <li class="user-item" v-for="user in userCount" :key="user.loginid" :class="{'present': user.loginid === loginid}" @click="_changeUser(user)">
+          <div class="item">
+            <div class="user-con"><span>{{user.username}}</span></div>
+            <p v-if="user.loginid === loginid"><i class="dot"></i>当前使用</p>
+          </div>
+        </li>
+        <li class="user-item addUser" @click="switchType = false">
+          <div class="item">
+            <div class="user-con"><span>+</span></div>
+          </div>
+        </li>
+      </ul>
     </div>
     <!--底部-->
     <foot :imgUrl="imagesUrl.foot"></foot>
@@ -78,7 +101,7 @@
 import iconButton from '@/components/icon-button'
 // import musicButton from '@/components/music-button'
 import foot from '@/components/foot'
-import {getCode, stuLogin, visitLogin, teaLogin, getShareCoin} from '@/utils/api'
+import {getCode, stuLogin, visitLogin, teaLogin, getShareCoin, getCurrentWxUsers, signOutAndLogin} from '@/utils/api'
 
 export default {
   data () {
@@ -106,7 +129,10 @@ export default {
       password: '', // 通行证密码 ----- 教师
       shakeN: 0,
       showMusicButton: false,
-      hasLogin: false // 主动从入口进来的
+      hasLogin: false, // 主动从入口进来的
+      switchType: false,
+      userCount: [],
+      loginid: ''
     }
   },
   computed: {
@@ -121,11 +147,18 @@ export default {
 //    musicButton
   },
   onShow () {
+    this._getCurrentWxUsers()
+    this.loginid = wx.getStorageSync('userInfo2').loginid || ''
   },
   onLoad (opt) {
     if (opt.userType) {
       this.loginType = parseInt(opt.userType)
       this.hasLogin = true
+    }
+    if (opt.switchType) {
+      this.switchType = opt.switchType
+    } else {
+      this.switchType = false
     }
   },
   methods: {
@@ -189,11 +222,7 @@ export default {
     _submit (type) {
       let userInfo = wx.getStorageSync('userInfo')
       let openid = wx.getStorageSync('openid')
-      let wxMsgJson = {
-        openid: openid,
-        nickname: userInfo.nickName,
-        avatarUrl: userInfo.avatarUrl
-      }
+      let newWxMsgJson = Object.assign({}, {openid: openid}, userInfo)
       let param = {}
       let fn = null
       switch (type) {
@@ -201,7 +230,7 @@ export default {
           param = {
             username: this.cardNumber,
             password: this.password,
-            wxMsgJson: JSON.stringify(wxMsgJson)
+            wxMsgJson: JSON.stringify(newWxMsgJson)
           }
           fn = teaLogin
           break
@@ -217,13 +246,13 @@ export default {
             phoneNumber: this.phoneNumber,
             code: this.code,
             username: this.userName,
-            wxMsgJson: JSON.stringify(wxMsgJson)
+            wxMsgJson: JSON.stringify(newWxMsgJson)
           }
           fn = stuLogin
           break
         case 3: // 游客登录
           param = {
-            wxMsgJson: JSON.stringify(wxMsgJson)
+            wxMsgJson: JSON.stringify(newWxMsgJson)
           }
           if (this.hasLogin) {
             wx.navigateBack()
@@ -241,7 +270,9 @@ export default {
               shareOpenid: wx.getStorageSync('shareOpenid'),
               userOpenid: wx.getStorageSync('openid'),
               ckId: '0',
-              isUpdateTitle: false
+              isUpdateTitle: false,
+              userType: wx.getStorageSync('userType'),
+              loginid: wx.getStorageSync('userInfo2').loginid || ''
             }
             getShareCoin(param).then((res) => {
               if (res.success) {
@@ -249,6 +280,9 @@ export default {
               }
             })
           }
+          console.log('userLogin', res)
+          wx.setStorageSync('userInfo2', res.data)
+
           // 缓存用户类型
           wx.setStorageSync('userType', `${type}`)
           let param = `?flag=true`
@@ -273,6 +307,30 @@ export default {
         wx.pauseBackgroundAudio()
       }
     },
+    _getCurrentWxUsers () {
+      let param = {
+        openid: wx.getStorageSync('openid')
+      }
+      getCurrentWxUsers(param).then((res) => {
+        this.userCount = res.data
+        console.log('用户：', res.data)
+      })
+    },
+    // 切换账号
+    _changeUser (user) {
+      console.log(user)
+      let param = {
+        openid: user.openid,
+        loginid: user.loginid,
+        userType: user.usertype
+      }
+      signOutAndLogin(param).then((res) => {
+        if (res.success) {
+          // this.goToPage('student')
+          wx.navigateBack()
+        }
+      })
+    },
     // 页面跳转
     goToPage (page, param) {
       let url = param ? `../${page}/main${param}` : `../${page}/main`
@@ -286,81 +344,96 @@ export default {
 .container{
   overflow: hidden;
 }
-.visitor{
-  position: absolute;
-  z-index: 100;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 672rpx;
-  height: 734rpx;
-  border-radius: 16rpx;
-  background-color: rgba(0,0,0,0.8);
-}
-.visitor .flexColum{
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-.visitor img{
-  width: 100%;
-  height: 100%;
-}
-.visitor .flexColum .close{
-  position: absolute;
-  top: 6rpx;
-  right: 0;
-  width: 30rpx;
-  height: 30rpx;
-  font-size: 0;
-  padding: 18rpx;
-}
-.visitor .title{
-  padding-top: 36rpx;
-  width: 480rpx;
-  height: 84rpx;
-  font-size: 0;
-}
-.visitor .content{
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 34rpx;
-}
-.visitor .content h1{
-  width: 100%;
-  text-align: left;
-  width: 83rpx;
-  height: 35rpx;
-  font-size: 0;
-  padding:10rpx 0 5rpx 20rpx;
-}
-.visitor .content .con{
+.switchUser{
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
 }
-.visitor .content .img{
-  flex: 0 0 172rpx;
-  font-size: 0;
-  width: 172rpx;
-  height: 62rpx;
-  padding: 15rpx 12rpx;
+.switchUser .panel-tip{
+  position: relative;
+  margin-top: 100rpx;
 }
-.visitor .bottom{
-  padding: 40rpx 0 58rpx 0;
+.switchUser .panel-tip .pen{
+  position: absolute;
+  left: 25rpx;
+  top: 56rpx;
+  width: 80rpx;
+  height: 75rpx;
 }
-.visitor .bottom .tip{
-  width: 344rpx;
-  height: 25rpx;
-  font-size: 0;
-  margin:0 auto;
-  padding: 10rpx 0;
+.switchUser .panel-tip .pen.pen_r{
+  left:468rpx;
+  transform-origin:50% 50%;
+  transform:rotate(-270deg);
 }
-.visitor .bottom .btn .sure, .visitor .bottom .btn .cancel{
-  float: left;
-  width: 177rpx;
-  height: 78rpx;
-  padding: 0 36rpx;
+.switchUser .panel-tip .img-con{
+  position: relative;
+  width: 572rpx;
+  height: 200rpx;
+  text-align: center;
+  line-height: 200rpx;
+}
+.switchUser .panel-tip .img-con img{
+  width: 100%;
+  height: 100%
+}
+.switchUser .panel-tip .img-con p{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 36rpx;
+  color: #ffffff;
+}
+.switchUser .wxUser{
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 100rpx;
+  width: 572rpx;
+}
+.switchUser .wxUser .user-item{
+  flex: 0 0 33%;
+  text-align:center;
+  margin-bottom: 40rpx;
+}
+.switchUser .wxUser .user-item .item{
+  display: inline-block;
+  text-align: center;
+}
+.switchUser .wxUser .user-item .user-con{
+  width: 130rpx;
+  height: 130rpx;
+  font-size: 32rpx;
+  color: #660000;
+  border: 14rpx solid #ffcc66;
+  background: #ffffff;
+  border-radius: 20rpx;
+  display:flex;
+  flex-direction:colum;
+  align-items:center;
+  justify-content:center;
+}
+.switchUser .wxUser .user-item.present .user-con{
+  color: #6f8b00;
+  border: 14rpx solid #b0cd4d;
+}
+.switchUser .wxUser .user-item.addUser .user-con{
+  font-size: 72rpx;
+  color: #a37a28;
+}
+.switchUser .wxUser .user-item.addUser .user-con span{
+  padding-bottom: 10px;
+}
+.switchUser .wxUser .user-item p{
+  font-size: 28rpx;
+  line-height:2;
+}
+.switchUser .wxUser .user-item p i{
+  display: inline-block;
+  width: 16rpx;
+  height: 16rpx;
+  background: #b0cd4d;
+  border-radius: 50%;
 }
 
 .music{
@@ -424,7 +497,7 @@ export default {
   right: -18rpx;
   bottom: -12rpx;
   width: 215rpx;
-  height: 74rpx;
+  height: 84rpx;
   line-height: 74rpx;
   color: #ffffff;
 }

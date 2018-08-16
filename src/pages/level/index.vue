@@ -15,11 +15,8 @@
               <span v-if="userType === '3'">{{userDiamond}}</span>
             </div>
             <div class="info">
-              <!--<span>第{{issue}}期</span>-->
               <span style="text-align: left; text-indent: 20rpx">{{sea}}</span>
-              <!--<span>当前第{{currentNum}}关</span>-->
-              <!--<span>总{{levelNum}}关</span>-->
-              <span>当前闯过第{{currentNum}}/{{levelNum}}关</span>
+              <span>当前闯过第{{currentNum}}/{{levelNum + ckUnOpenCount}}关</span>
             </div>
           </div>
         </stu-card>
@@ -32,6 +29,9 @@
                  @touchstart.prevent="_touchStart(index)"
                  @touchend.prevent="_touchEnd(index)"
                  @tap.prevent="_tap(index)">{{i + 1}}</div>
+          </div>
+          <div class="flex-item" v-for="n in ckUnOpenCount" :key="levelNum + n">
+            <div class="item" style="font-size:32rpx;font-weight: 100;line-height: 1.5;padding: 20rpx;box-sizing: border-box;box-shadow: 8rpx 8rpx 5rpx #999;">等待发布</div>
           </div>
         </div>
       </div>
@@ -61,8 +61,9 @@
         clickItem: '',
         score: 0, // 总积分
         issue: 0, // 期数
-        levelNum: 0, // 总关卡
+        levelNum: 0, // 已发布关卡
         currentNum: 0, // 已通关卡
+        ckUnOpenCount: 0, // 未发布的关卡
         gradId: '',
         showGetGold: false,
         type: 'goldNull',
@@ -86,12 +87,14 @@
             shareOpenid: wx.getStorageSync('openid'),
             userOpenid: '',
             ckId: '0',
-            isUpdateTitle: false
+            isUpdateTitle: false,
+            userType: wx.getStorageSync('userType'),
+            loginid: wx.getStorageSync('userInfo2').loginid || ''
           }
           getShareCoin(param).then((res) => {
             if (res.data.msg !== '') {
               _this.type = 'getGold'
-              _this.userDiamond += 20
+              _this.userDiamond += 60
             }
           })
         }
@@ -115,25 +118,18 @@
         }
       },
       _tap (n) {
-        console.log('dlll')
         let param = `?id=${n + 1}&levelNum=${this.levelNum}&gradId=${this.gradId}`
         if (n <= this.currentNum) {
           if (this.userType === '3') {
             let data = {
-              openid: wx.getStorageSync('openid')
+              openid: wx.getStorageSync('openid'),
+              userType: wx.getStorageSync('userType'),
+              loginid: wx.getStorageSync('userInfo2').loginid || ''
             }
             // 游客登录需要金币是否足够
             checkYoukeGoldCoin(data).then((res) => {
               if (res.success) {
                 let _this = this
-                /*
-                wx.showToast({
-                  title: '-10钻石',
-                  image: '/static/images/gold.png',
-                  success () {
-                    _this.userDiamond -= 10
-                  }
-                }) */
                 this.showDelete = true
                 this.userDiamond -= 10
                 setTimeout(() => {
@@ -141,6 +137,20 @@
                   _this.showDelete = false
                 }, 1500)
               } else {
+                // 账号登出提示
+                if (res.data === '404') {
+                  wx.showModal({
+                    title: '登出提示',
+                    content: res.desc,
+                    showCancel: false,
+                    success: function (res) {
+                      if (res.confirm) {
+                        wx.redirectTo({url: '../index/main'})
+                      }
+                    }
+                  })
+                  return
+                }
                 this.showGetGold = true
                 this.type = 'goldNull'
               }
@@ -155,24 +165,43 @@
         let url = param ? `../${page}/main${param}` : `../${page}/main`
         wx.navigateTo({url: url})
       },
+      // 通关情况
       getUserCheckPoints () {
         let data = {
           openid: wx.getStorageSync('openid'),
           graId: this.gradId,
-          perSequence: wx.getStorageSync('userData').userObj.perSequence
+          perSequence: wx.getStorageSync('userData').userObj.perSequence,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         this.score = 0
         getUserCheckPoints(data).then((res) => {
-          this.currentNum = res.data.myCheckpoints.length
-          this.score = res.data.xsStudents.integralCount
-          this.userDiamond = res.data.xsStudents.goldCoin ? parseInt(res.data.xsStudents.goldCoin) : 0
-          this.userType = res.data.xsStudents.usertype
-          if (res.data.myCheckpoints.length) {
-            res.data.myCheckpoints.forEach((item) => {
-              if (item.topScore === '0') {
-                this.currentNum--
-              }
-            })
+          if (res.success) {
+            this.currentNum = res.data.myCheckpoints.length
+            this.score = res.data.xsStudents.integralCount
+            this.userDiamond = res.data.xsStudents.goldCoin ? parseInt(res.data.xsStudents.goldCoin) : 0
+            this.userType = res.data.xsStudents.usertype
+            if (res.data.myCheckpoints.length) {
+              res.data.myCheckpoints.forEach((item) => {
+                if (item.topScore === '0') {
+                  this.currentNum--
+                }
+              })
+            }
+          } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+            }
           }
         })
       },
@@ -182,21 +211,42 @@
           title: '数据加载中...'
         })
         let param = {
+          openid: wx.getStorageSync('openid'),
           perSequence: this.issue,
-          graId: this.gradId
+          graId: this.gradId,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         this.levelNum = 0
+        this.ckUnOpenCount = 0
         getSequence(param).then((res) => {
           console.log(res)
           wx.hideLoading()
-          if (res.data !== '0') {
-            this.levelNum = parseInt(res.data)
-            this.getUserCheckPoints()
+          if (res.success) {
+            this.ckUnOpenCount = parseInt(res.data.ckUnOpenCount)
+            if (res.data.ckCount !== '0') {
+              this.levelNum = parseInt(res.data.ckCount)
+              this.getUserCheckPoints()
+            } else {
+              wx.showToast({
+                title: '当前年级暂无已发布关卡',
+                icon: 'none'
+              })
+            }
           } else {
-            wx.showToast({
-              title: '当前年级暂无关卡',
-              icon: 'none'
-            })
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+            }
           }
         })
       }
@@ -206,10 +256,8 @@
       this.issue = opt.perSequence
       this.gradId = opt.gradId
       this.sea = opt.sea
-      console.log('djk11')
     },
     onShow () {
-      console.log('djk')
       this._getSequence()
     },
     components: {

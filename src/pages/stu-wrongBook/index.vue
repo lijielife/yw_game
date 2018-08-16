@@ -54,32 +54,50 @@
       getMyWrongBooks (perSequence) {
         let param = {
           openid: wx.getStorageSync('openid'),
-          perSequence: perSequence
+          perSequence: perSequence,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         getMyWrongBooks(param).then((res) => {
           console.log(res)
-          this.wrongSub.length = 0
-          if (res.data.length) {
-            res.data.forEach((item) => {
-              let answer = []
-              let answerNo = ['A', 'B', 'C', 'D', 'E', 'F']
-              for (let k in item) {
-                if (k.indexOf('answer') === 0) {
-                  let n = parseInt(k.split('answer')[1])
-                  answer[n - 1] = {
-                    no: answerNo[n - 1],
-                    con: item[k]
+          if (res.success) {
+            this.wrongSub.length = 0
+            if (res.data.length) {
+              res.data.forEach((item) => {
+                let answer = []
+                let answerNo = ['A', 'B', 'C', 'D', 'E', 'F']
+                for (let k in item) {
+                  if (k.indexOf('answer') === 0) {
+                    let n = parseInt(k.split('answer')[1])
+                    answer[n - 1] = {
+                      no: answerNo[n - 1],
+                      con: item[k]
+                    }
                   }
                 }
-              }
-              this.wrongSub.push({
-                answer: answer,
-                content: item.content,
-                userAnswer: item.user_answer,
-                rightAnswer: item.right_answer
+                this.wrongSub.push({
+                  answer: answer,
+                  content: item.content,
+                  userAnswer: item.user_answer,
+                  rightAnswer: item.right_answer
+                })
               })
-            })
-            console.log('wrongSub:', this.wrongSub)
+            }
+          } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+              return
+            }
           }
         })
       }

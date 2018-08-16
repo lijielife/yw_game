@@ -236,7 +236,9 @@
             shareOpenid: wx.getStorageSync('openid'),
             userOpenid: '',
             ckId: _this.ckId,
-            isUpdateTitle: _this.isUpdateTitle
+            isUpdateTitle: _this.isUpdateTitle,
+            userType: wx.getStorageSync('userType'),
+            loginid: wx.getStorageSync('userInfo2').loginid || ''
           }
           getShareCoin(param).then((res) => {
             if (res.success) {
@@ -318,18 +320,14 @@
         }
         if (wx.getStorageSync('userData').weixinObj.usertype === '3') {
           let data = {
-            openid: wx.getStorageSync('openid')
+            openid: wx.getStorageSync('openid'),
+            userType: wx.getStorageSync('userType'),
+            loginid: wx.getStorageSync('userInfo2').loginid || ''
           }
           let _this = this
           // 游客登录需要钻石是否足够
           checkYoukeGoldCoin(data).then((res) => {
             if (res.success) {
-              // _this.showDiamon = true
-              /* this.showDelete = true
-              wx.showToast({
-                title: '-10钻石',
-                image: '/static/images/gold.png'
-              }) */
               this.showDelete = true
               setTimeout(() => {
                 _this.currentSequence++
@@ -337,6 +335,20 @@
                 _this.showDelete = false
               }, 1500)
             } else {
+              // 账号登出提示
+              if (res.data === '404') {
+                wx.showModal({
+                  title: '登出提示',
+                  content: res.desc,
+                  showCancel: false,
+                  success: function (res) {
+                    if (res.confirm) {
+                      wx.redirectTo({url: '../index/main'})
+                    }
+                  }
+                })
+                return
+              }
               _this.showGetGold = true
               _this.type = 'goldNull'
               return
@@ -353,24 +365,34 @@
       _again () {
         if (wx.getStorageSync('userData').weixinObj.usertype === '3') {
           let data = {
-            openid: wx.getStorageSync('openid')
+            openid: wx.getStorageSync('openid'),
+            userType: wx.getStorageSync('userType'),
+            loginid: wx.getStorageSync('userInfo2').loginid || ''
           }
           // 游客登录需要钻石是否足够
           let _this = this
           checkYoukeGoldCoin(data).then((res) => {
             if (res.success) {
               this.showDelete = true
-              // _this.showDiamon = true
-              /* wx.showToast({
-                title: '-10钻石',
-                image: '/static/images/gold.png'
-              }) */
               setTimeout(() => {
                 _this.getAccessPassSubject(_this.currentSequence)
-                // _this.showDiamon = false
                 _this.showDelete = false
               }, 1500)
             } else {
+              // 账号登出提示
+              if (res.data === '404') {
+                wx.showModal({
+                  title: '登出提示',
+                  content: res.desc,
+                  showCancel: false,
+                  success: function (res) {
+                    if (res.confirm) {
+                      wx.redirectTo({url: '../index/main'})
+                    }
+                  }
+                })
+                return
+              }
               _this.showGetGold = true
               _this.type = 'goldNull'
               return
@@ -452,6 +474,8 @@
         this.submitAnswer.openid = wx.getStorageSync('openid')
         this.submitAnswer.wrongAnswer = JSON.stringify(this.wrongAnswer)
         this.submitAnswer.rightAnswer = JSON.stringify(this.rightAnswer)
+        this.submitAnswer.loginid = wx.getStorageSync('userInfo2').loginid || ''
+        this.submitAnswer.userType = wx.getStorageSync('userType')
         submitUserAnswer(this.submitAnswer).then((res) => {
           console.log(res)
           if (res.success) {
@@ -469,13 +493,6 @@
                   console.log('开始播放')
                 })
               }
-              /*
-              if (this.titleUp === '6' && res.data.isUpdateTitle) {
-                this._result('2')
-              } else {
-                this._result('1')
-              }
-              */
               // 状元前五升头衔效果提示
               if (res.data.isUpdateTitle) {
                 if (this.titleUp === '6') {
@@ -488,42 +505,6 @@
               } else {
                 this._result('1')
               }
-              // 状元前五升头衔效果提示
-              /*
-              if (res.data.isUpdateTitle) {
-                if (this.titleUp !== '6') {
-                  this.showHats = true
-                  this.hatType = `stu_${this.titleUp}`
-                  let text = ''
-                  switch (this.titleUp) {
-                    case '1':
-                      text = '童生'
-                      break
-                    case '2':
-                      text = '秀才'
-                      break
-                    case '3':
-                      text = '举人'
-                      break
-                    case '4':
-                      text = '贡士'
-                      break
-                    case '5':
-                      text = '进士'
-                      break
-                  }
-                  this.hatText = `恭喜你晋升到${text}！`
-                  this.hidden = false
-                  let _this = this
-                  setTimeout(() => {
-                    _this.hidden = true
-                  }, 3000)
-                  setTimeout(() => {
-                    _this.showHats = false
-                  }, 4000)
-                }
-              }
-              */
             } else {
               this._result('3')
               if (this.showMusic && !type && wx.getStorageSync('versionSure') !== -1) {
@@ -536,6 +517,21 @@
               }
             }
           } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+              return
+            }
+            // 提交失败
             if (this.submitTimes > 0) {
               this.submitTimes--
               this.onceSubmit = true
@@ -567,7 +563,9 @@
           ckId: opt,
           perSequence: wx.getStorageSync('userData').userObj.perSequence,
           graId: this.gradId,
-          ck_sequence: opt
+          ck_sequence: opt,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         getAccessPassSubject(param).then((res) => {
           wx.hideLoading()
@@ -593,6 +591,20 @@
               _this.setCurrentSub(0)
             }, 2000)
           } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+              return
+            }
             wx.showToast({
               title: res.desc,
               icon: 'none',

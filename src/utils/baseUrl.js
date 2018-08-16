@@ -1,6 +1,7 @@
 // 测试接口
-export const baseUrl = 'https://ywdtcgtest.zy.com/tpch'
+// export const baseUrl = 'https://ywdtcgtest.zy.com/tpch'
 // export const baseUrl = 'http://172.22.0.13/tpch'
+export const baseUrl = 'https://ywdtcgtest.zy.com:18443/tpch'
 // 生产端接口
 // export const baseUrl = 'https://ywdtcg.zy.com/tpch'
 
@@ -9,10 +10,12 @@ export const baseUrl = 'https://ywdtcgtest.zy.com/tpch'
 // export const baseUrl = 'https://172.22.57.22:8443/tpch'
 // export const appId = 'wx1a373b4c83e1100d'
 // export const appSecret = '8d31c7834f05a38e2d2f8a23b2cf840e'
-// 正式线appid及密钥
-export const appId = 'wx1a373b4c83e1100d'
-export const appSecret = '67ca296bc27e1bd22a6e0e65fe33c568'
-
+// 语文大闯关正式线appid及密钥
+// export const appId = 'wx1a373b4c83e1100d'
+// export const appSecret = '67ca296bc27e1bd22a6e0e65fe33c568'
+// 语文闯关appid及密钥
+export const appId = 'wx3bda733d1a9a6e82'
+export const appSecret = '932d7df3e7a7721bb345a22907594ce2'
 // 年级
 export const grads = [
   {gradId: '1', gradName: '一年级'},

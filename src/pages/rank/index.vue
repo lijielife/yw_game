@@ -132,7 +132,9 @@
             shareOpenid: wx.getStorageSync('openid'),
             userOpenid: '',
             ckId: '0',
-            isUpdateTitle: false
+            isUpdateTitle: false,
+            userType: wx.getStorageSync('userType'),
+            loginid: wx.getStorageSync('userInfo2').loginid || ''
           }
           getShareCoin(param).then((res) => {
             console.log(res)
@@ -154,8 +156,10 @@
       },
       stuRanking () {
         let param = {
-          // openid: wx.getStorageSync('openid')
-          graId: wx.getStorageSync('graId')
+          openid: wx.getStorageSync('openid'),
+          graId: wx.getStorageSync('graId'),
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         this.rankData = []
         this.userData = {}
@@ -163,45 +167,49 @@
           title: '数据加载中...'
         })
         stuRanking(param).then((res) => {
-          if (res.data.length) {
-            res.data.forEach((item) => {
-              this.rankData.push({
-                openid: item.openid,
-                name: item.usertype === '3' ? item.nickName2 : item.username,
-                score: item.integralCount,
-                avatarUrl: item.avatarUrl
-              })
-              if (!this.userData.openid) {
-                if (item.openid === wx.getStorageSync('openid')) {
-                  this.userData = item
-                } else {
-                  this.userData = {
-                    integralCount: wx.getStorageSync('userData').userObj.integralCount || '--',
-                    no: '--',
-                    username: '--',
-                    nickName2: '--'
+          wx.hideLoading()
+          if (res.success) {
+            if (res.data.length) {
+              res.data.forEach((item) => {
+                this.rankData.push({
+                  openid: item.openid,
+                  name: item.usertype === '3' ? item.nickName2 : item.username,
+                  score: item.integralCount,
+                  avatarUrl: item.avatarUrl
+                })
+                if (!this.userData.openid) {
+                  if (item.openid === wx.getStorageSync('openid')) {
+                    this.userData = item
+                  } else {
+                    this.userData = {
+                      integralCount: wx.getStorageSync('userData').userObj.integralCount || '--',
+                      no: '--',
+                      username: '--',
+                      nickName2: '--'
+                    }
                   }
                 }
-              }
-            })
-            wx.hideLoading()
-            /* this.rankData.sort((a, b) => {
-              return parseInt(b.score) - parseInt(a.score)
-            }) */
-            for (let i = 0; i <= this.rankData.length; i++) {
-              if (this.userData.openid === this.rankData[i].openid) {
-                this.userData.no = i + 1
+              })
+              for (let i = 0; i <= this.rankData.length; i++) {
+                if (this.userData.openid === this.rankData[i].openid) {
+                  this.userData.no = i + 1
+                }
               }
             }
-            // 老师数据
-            /* if (wx.getStorageSync('userType') === '1') {
-              this.userData = {
-                integralCount: '--',
-                no: '--',
-                username: '--',
-                nickName2: '--'
-              }
-            } */
+          } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+            }
           }
         })
       }

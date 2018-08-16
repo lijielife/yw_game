@@ -74,7 +74,9 @@
         })
         let param = {
           openid: wx.getStorageSync('openid'),
-          subjectsClassID: subjectsClassID
+          subjectsClassID: subjectsClassID,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         myStudentsAverage(param).then((res) => {
           wx.hideLoading()
@@ -82,6 +84,21 @@
           this.rankData.length = 0
           if (res.success) {
             this.rankData = res.data
+          } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+              return
+            }
           }
         })
       }

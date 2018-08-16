@@ -85,7 +85,7 @@ export async function getUserData (data) {
 // 年级维度排行榜
 export async function stuRanking (data) {
   const res = await request({
-    url: `${baseUrl}/studentContro/stuRanking2`,
+    url: `${baseUrl}/studentContro/stuRanking`,
     data: data
   })
   return res
@@ -203,6 +203,23 @@ export async function gradeChange (data) {
 export async function sendWxFromId (data) {
   const res = await request({
     url: `${baseUrl}/studentContro/sendWxFromId`,
+    data: data
+  })
+  return res
+}
+
+// getCurrentWxUsers 获取当前微信增加登录过的账号
+export async function getCurrentWxUsers (data) {
+  const res = await request({
+    url: `${baseUrl}/studentContro/getCurrentWxUsers`,
+    data: data
+  })
+  return res
+}
+// getCurrentWxUsers 切换登录账号
+export async function signOutAndLogin (data) {
+  const res = await request({
+    url: `${baseUrl}/studentContro/signOutAndLogin`,
     data: data
   })
   return res

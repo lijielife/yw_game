@@ -30,14 +30,9 @@
     data () {
       return {
         imagesSrc: {
-//          top: require('static/images/top10/top10.png'),
           close_btn: require('static/images/top10/top10.png')
-//          score: require('static/images/score.png')
         },
-        top10: [
-          {imageUrl: require('static/images/avatar_2.png'), name: 'kkdkkd', score: '120'},
-          {imageUrl: require('static/images/avatar_2.png'), name: 'kkdkkd', score: '120'}
-        ]
+        top10: []
       }
     },
     computed: {
@@ -55,9 +50,12 @@
     methods: {
       checkPointTopTen (mySequence) {
         let param = {
+          openid: wx.getStorageSync('openid'),
           perSequence: wx.getStorageSync('perSequence'),
           graId: wx.getStorageSync('graId'),
-          mySequence: mySequence
+          mySequence: mySequence,
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         checkPointTopTen(param).then((res) => {
           this.top10.length = 0
@@ -69,6 +67,20 @@
                 score: item.topScore
               })
             })
+          } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+            }
           }
         })
       }
