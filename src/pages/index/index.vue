@@ -1,11 +1,5 @@
 <template>
   <div class="container">
-    <!--音频按钮-->
-    <!-- <div class="music" :class="musicStatus">
-      <icon-button :imgUrl="musicSrc" @tapEvent="_toggle"></icon-button>
-    </div> -->
-    <!--<music-button v-if="showMusicButton"></music-button>-->
-    <!--用户头像-->
     <div class="userinfo" v-if="!switchType">
       <open-data type="userAvatarUrl"></open-data>
     </div>
@@ -63,7 +57,7 @@
         <icon-button :imgUrl="imagesUrl.login" @tapEvent="_submit(1)"  v-if="loginType !== 2"></icon-button>
         <icon-button :imgUrl="imagesUrl.login" @tapEvent="_submit(2)" v-if="loginType !== 1"></icon-button>
       </div>
-      <div class="item">
+      <div class="item" v-if="!hideType">
         <a class="go" @click="_submit(3)">我未报读秋季课程</a>
         <a class="go" @click="loginType = 1" v-if="loginType !== 1">老师登录</a>
         <a class="go" @click="loginType = 2" v-if="loginType !== 2">学生登录</a>
@@ -85,7 +79,7 @@
             <p v-if="user.loginid === loginid"><i class="dot"></i>当前使用</p>
           </div>
         </li>
-        <li class="user-item addUser" @click="switchType = false">
+        <li class="user-item addUser" @click="_hideType">
           <div class="item">
             <div class="user-con"><span>+</span></div>
           </div>
@@ -99,7 +93,6 @@
 
 <script>
 import iconButton from '@/components/icon-button'
-// import musicButton from '@/components/music-button'
 import foot from '@/components/foot'
 import {getCode, stuLogin, visitLogin, teaLogin, getShareCoin, getCurrentWxUsers, signOutAndLogin} from '@/utils/api'
 
@@ -109,9 +102,8 @@ export default {
       imagesUrl: {
         login: require('static/images/login.png'),
         btn: require('static/images/btn_bg.png'),
-        foot: require('static/images/foot_img.png')
+        foot: require('static/images/foot_img3.png')
       },
-      motto: 'Hello World',
       userInfo: {},
       avatarUrl: require('static/images/avatar_img.png'),
       musicStatus: 'run', // run or stop
@@ -121,7 +113,6 @@ export default {
       interVal: null,
       loginType: 2, // 登录类型： 2：学生登录， 1：老师登录
       selGrad: 0, // 选择年级
-      // todo: 表单信息
       userName: '', // 真实姓名 --- 学生
       phoneNumber: '', // 手机号码 --- 学生
       code: '', // 验证码 ---- 学生
@@ -131,20 +122,16 @@ export default {
       showMusicButton: false,
       hasLogin: false, // 主动从入口进来的
       switchType: false,
+      hideType: false,
       userCount: [],
       loginid: ''
     }
   },
   computed: {
-    // 切换音乐按钮
-    musicSrc: function () {
-      return require(`static/images/music_${this.musicStatus}.png`)
-    }
   },
   components: {
     iconButton,
     foot
-//    musicButton
   },
   onShow () {
     this._getCurrentWxUsers()
@@ -162,6 +149,12 @@ export default {
     }
   },
   methods: {
+    // 隐藏游客和老师切换
+    _hideType () {
+      this.hideType = true
+      this.switchType = false
+    },
+    // 图标晃动
     _shake (n) {
       this.shakeN = n
       let _this = this
@@ -225,6 +218,7 @@ export default {
       let newWxMsgJson = Object.assign({}, {openid: openid}, userInfo)
       let param = {}
       let fn = null
+      // console.log('shareOpenid:', wx.getStorageSync('shareOpenid') || 'meiyou')
       switch (type) {
         case 1: // 教师登录
           param = {
@@ -243,6 +237,7 @@ export default {
             return
           }
           param = {
+            shareOpenid: wx.getStorageSync('shareOpenid') || '',
             phoneNumber: this.phoneNumber,
             code: this.code,
             username: this.userName,
@@ -252,6 +247,7 @@ export default {
           break
         case 3: // 游客登录
           param = {
+            shareOpenid: wx.getStorageSync('shareOpenid') || '',
             wxMsgJson: JSON.stringify(newWxMsgJson)
           }
           if (this.hasLogin) {
@@ -267,15 +263,15 @@ export default {
           // 分享者获得分享金币或钻石
           if (wx.getStorageSync('shareOpenid')) {
             let param = {
-              shareOpenid: wx.getStorageSync('shareOpenid'),
+              shareOpenid: wx.getStorageSync('shareOpenid') || '',
               userOpenid: wx.getStorageSync('openid'),
               ckId: '0',
               isUpdateTitle: false,
-              userType: wx.getStorageSync('userType'),
-              loginid: wx.getStorageSync('userInfo2').loginid || ''
+              userType: type,
+              loginid: res.data.loginid || ''
             }
-            getShareCoin(param).then((res) => {
-              if (res.success) {
+            getShareCoin(param).then((res1) => {
+              if (res1.success) {
                 wx.removeStorageSync('shareOpenid')
               }
             })
@@ -311,30 +307,39 @@ export default {
       let param = {
         openid: wx.getStorageSync('openid')
       }
+      wx.showLoading({
+        title: '数据加载中...'
+      })
       getCurrentWxUsers(param).then((res) => {
+        wx.hideLoading()
         this.userCount = res.data
-        console.log('用户：', res.data)
       })
     },
     // 切换账号
     _changeUser (user) {
       console.log(user)
+      let userInfo = wx.getStorageSync('userInfo')
       let param = {
         openid: user.openid,
         loginid: user.loginid,
-        userType: user.usertype
+        userType: user.usertype,
+        wxMsgJson: JSON.stringify(userInfo)
       }
       signOutAndLogin(param).then((res) => {
         if (res.success) {
-          // this.goToPage('student')
-          wx.navigateBack()
+          this.goToPage('student')
+        } else {
+          wx.showToast({
+            title: res.desc,
+            icon: 'none'
+          })
         }
       })
     },
     // 页面跳转
     goToPage (page, param) {
       let url = param ? `../${page}/main${param}` : `../${page}/main`
-      wx.navigateTo({url: url})
+      wx.reLaunch({url: url})
     }
   }
 }

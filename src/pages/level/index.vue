@@ -30,8 +30,10 @@
                  @touchend.prevent="_touchEnd(index)"
                  @tap.prevent="_tap(index)">{{i + 1}}</div>
           </div>
-          <div class="flex-item" v-for="n in ckUnOpenCount" :key="levelNum + n">
-            <div class="item" style="font-size:32rpx;font-weight: 100;line-height: 1.5;padding: 20rpx;box-sizing: border-box;box-shadow: 8rpx 8rpx 5rpx #999;">等待发布</div>
+          <div class="flex-item" v-for="n in ckUnOpenCount" :key="levelNum + n" @click="_tip">
+            <div class="item" style="padding-top: 8rpx;box-sizing: border-box;box-shadow: 8rpx 8rpx 5rpx #999;">
+              <img src="/static/images/clock.png" style="width: 70rpx; height: 70rpx;" alt="">
+            </div>
           </div>
         </div>
       </div>
@@ -56,7 +58,7 @@
       return {
         imagesSrc: {
           card: require('static/images/card/s1.png'),
-          foot: require('static/images/foot_img2.png')
+          foot: require('static/images/foot_img3.png')
         },
         clickItem: '',
         score: 0, // 总积分
@@ -79,9 +81,10 @@
         withShareTicket: true
       })
       let _this = this
+      let id = wx.getStorageSync('userInfo2').loginid || wx.getStorageSync('userInfo2').openid
       return {
         title: '语文大闯关',
-        path: `/pages/student/main?openid=${wx.getStorageSync('openid')}`,
+        path: `/pages/student/main?openid=${id}`,
         success: () => {
           let param = {
             shareOpenid: wx.getStorageSync('openid'),
@@ -101,6 +104,13 @@
       }
     },
     methods: {
+      // 提示未发布关卡
+      _tip () {
+        wx.showToast({
+          title: '该关卡暂时未发布',
+          icon: 'none'
+        })
+      },
       _closeAlert () {
         this.showGetGold = false
       },
@@ -320,6 +330,7 @@
     width: 570rpx;
     margin-top: 30rpx;
     height:782rpx;
+    overflow-y:auto;
   }
   .level .level-con{
     display: flex;

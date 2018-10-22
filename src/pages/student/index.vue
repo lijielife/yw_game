@@ -1,6 +1,5 @@
 <template>
   <div class="container">
-    <!--<music-button :t="t" :r="r"  v-if="showMusicButton"></music-button>-->
     <div class="index-con" v-if="userData.userObj">
       <div class="top">
         <div class="user">
@@ -18,8 +17,10 @@
               <p class="text">
                 {{title_text}}
               </p>
+              <span @click="_changeGrad">{{currentGradName}}<i class="down"></i></span>
               <!-- 保留只有老师才有切换年级 -->
-              <span @click="_changeGrad" v-if="userType === '1'">{{currentGradName}}<i class="down"></i></span>
+              <!--<span @click="_changeGrad" v-if="userType === '1'">{{currentGradName}}<i class="down"></i></span>
+              <span v-if="userType !== '1'">{{currentGradName}}</span>-->
               <div class="bg">
                 <img src="/static/images/info_bg.png">
               </div>
@@ -173,7 +174,7 @@
                       </div>
                     </div>
                     <div class="rank-name">
-                      <div class="name">{{studentRanking[2].nickName || studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
+                      <div class="name">{{studentRanking[2].username || studentRanking[2].nickName2 || studentRanking[2].nickName}}</div>
                       <div class="score">
                   <span class="icon">
                     <img src="/static/images/score.png" alt="">
@@ -195,9 +196,8 @@
             <div class="tcard-con">
               <h1 class="cBlack">查看错题集</h1>
               <div class="text">
-                <!--<div>第<span>{{userData.userObj.perSequence}}</span>期</div>-->
                 <div><span>{{sea}}</span></div>
-                <div class="ml50">共<span>{{userData.ckCount}}</span>关</div>
+                <div class="ml50">共<span>{{allNum}}</span>关</div>
               </div>
             </div>
           </stu-card>
@@ -262,7 +262,6 @@
       </div>
     </div>
 
-
     <!--底部-->
     <foot :imgUrl="imagesSrc.foot" v-if="userData.userObj"></foot>
     <!--微信授权登录-->
@@ -295,7 +294,7 @@
                <img :src="gradM.gradImg" v-else>
              </div>
            </div>
-           <p style="font-size: 32rpx;color:rgba(255,255,255,0.8);padding-left: 20rpx;">注：年级选择后不能更改</p>
+           <p style="font-size: 32rpx;color:red;padding-left: 20rpx;font-weight: 700;">注：年级选择后不能更改</p>
          </div>
          <div class="bottom">
            <div class="btn">
@@ -363,7 +362,7 @@
           },
           score: require('static/images/score.png'),
           gold: require('static/images/gold.png'),
-          foot: require('static/images/foot_img.png'),
+          foot: require('static/images/foot_img3.png'),
           stu: require('static/images/stu.png'),
           teach: require('static/images/teach.png'),
           switch_user: require('static/images/switch_user.png'),
@@ -400,7 +399,7 @@
         hideClose: false, // 设置是否隐藏角色选年级的关闭按钮
         sea: '', // 年份季节
         showTip: false, // 显示提示助手
-        formId: '',
+        formId: '', // 模板消息id
         onceSend: true,
         allNum: 0, // 所有关卡数，包括未发布
         hadNum: 0 // 已闯关卡数
@@ -422,7 +421,6 @@
     },
     methods: {
       formSubmit (e) {
-        console.log('form发生了submit事件，携带数据为：', e.target.formId)
         this.formId = e.target.formId
         let param = {
           openid: wx.getStorageSync('openid'),
@@ -487,6 +485,20 @@
               this.hideClose = false
             }
             this.getUserData()
+          } else {
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+            }
           }
         })
       },
@@ -693,6 +705,7 @@
             wx.hideLoading()
             wx.setStorageSync('userType', res.data.usertype)
             wx.setStorageSync('userInfo2', res.data)
+            this.showSelGrad = res.data.graId === '0'
             if (!this.showSelGrad) {
               this.getUserData()
             }

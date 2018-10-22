@@ -1,6 +1,6 @@
 // 测试接口
 // export const baseUrl = 'https://ywdtcgtest.zy.com/tpch'
-// export const baseUrl = 'http://172.22.0.13/tpch'
+// export const baseUrl = 'http://172.22.0.16/tpch'
 export const baseUrl = 'https://ywdtcgtest.zy.com:18443/tpch'
 // 生产端接口
 // export const baseUrl = 'https://ywdtcg.zy.com/tpch'

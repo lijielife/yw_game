@@ -151,7 +151,7 @@
             stu_text_5: require('static/images/hats/stu_text_5.png')
           },
           card: require('static/images/card/s1.png'),
-          foot: require('static/images/foot_img.png'),
+          foot: require('static/images/foot_img3.png'),
           alert: {
             btn_again: require('static/images/alert/btn_again.png'),
             btn_next: require('static/images/alert/btn_next.png'),
@@ -228,12 +228,13 @@
         withShareTicket: true
       })
       let _this = this
+      let id = wx.getStorageSync('userInfo2').loginid || wx.getStorageSync('userInfo2').openid
       return {
         title: '语文大闯关',
-        path: `/pages/student/main?openid=${wx.getStorageSync('openid')}`,
+        path: `/pages/student/main?openid=${id}`,
         success () {
           let param = {
-            shareOpenid: wx.getStorageSync('openid'),
+            shareOpenid: id,
             userOpenid: '',
             ckId: _this.ckId,
             isUpdateTitle: _this.isUpdateTitle,
@@ -571,6 +572,13 @@
           wx.hideLoading()
           console.log(res, 'data')
           if (res.success) {
+            // 初中以上答题时间设为一分钟
+            let grad = parseInt(res.data.ckOjbMsg.gradeid)
+            if (grad > 10) {
+              this.time = 60
+            } else {
+              this.time = 30
+            }
             this.ckId = res.data.ckOjbMsg.id
             this.submitAnswer.viaTime = 0
             // 当前关卡总题目

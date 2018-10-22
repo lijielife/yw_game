@@ -62,11 +62,11 @@
           <div class="avatar">
             <open-data type="userAvatarUrl" ></open-data>
           </div>
-          <span class="name" v-if="userData.username == '--'">
-            <open-data type="userNickName"></open-data>
+          <span class="name" v-if="userData.username">
+            {{userData.username}}
           </span>
           <span class="name" v-else>
-            {{userData.username || userData.nickName2}}
+            <open-data type="userNickName"></open-data>
           </span>
         </div>
         <div class="user-rank">
@@ -119,23 +119,24 @@
     },
     // 分享
     onShareAppMessage () {
-      wx.showShareMenu({
+      /* wx.showShareMenu({
         withShareTicket: true
-      })
+      }) */
       let _this = this
+      let id = wx.getStorageSync('userInfo2').loginid || wx.getStorageSync('userInfo2').openid
       return {
-        title: '语文大闯关',
-        path: `/pages/student/main?openid=${wx.getStorageSync('openid')}`,
-        success: (res) => {
-          console.log(res)
+        title: '语文闯关',
+        path: `/pages/student/main?openid=${id}`,
+        success: (res1) => {
           let param = {
-            shareOpenid: wx.getStorageSync('openid'),
+            shareOpenid: id,
             userOpenid: '',
             ckId: '0',
             isUpdateTitle: false,
             userType: wx.getStorageSync('userType'),
             loginid: wx.getStorageSync('userInfo2').loginid || ''
           }
+          console.log(res1, param)
           getShareCoin(param).then((res) => {
             console.log(res)
             if (res.success) {
@@ -166,33 +167,46 @@
         wx.showLoading({
           title: '数据加载中...'
         })
+        let onece = true
         stuRanking(param).then((res) => {
           wx.hideLoading()
           if (res.success) {
             if (res.data.length) {
-              res.data.forEach((item) => {
+              res.data.forEach((item, index) => {
                 this.rankData.push({
                   openid: item.openid,
-                  name: item.usertype === '3' ? item.nickName2 : item.username,
+                  name: item.username || item.nickName || item.nickName2,
                   score: item.integralCount,
                   avatarUrl: item.avatarUrl
                 })
-                if (!this.userData.openid) {
-                  if (item.openid === wx.getStorageSync('openid')) {
-                    this.userData = item
-                  } else {
+                if (onece && wx.getStorageSync('userType') !== '1') { // 非老师账号
+                  if (item.openid === wx.getStorageSync('userInfo2').loginid || item.openid === wx.getStorageSync('openid')) { // 存在排行榜上
+                    console.log(item.openid, wx.getStorageSync('openid'), wx.getStorageSync('userInfo2').loginid)
                     this.userData = {
-                      integralCount: wx.getStorageSync('userData').userObj.integralCount || '--',
+                      openid: item.openid,
+                      integralCount: item.integralCount,
+                      no: index + 1,
+                      username: item.username || item.nickName || item.nickName2
+                    }
+                    onece = false
+                  } else { // 不在排行榜上
+                    let userObj = wx.getStorageSync('userData').userObj
+                    this.userData = {
+                      openid: userObj.openid,
+                      integralCount: userObj.integralCount || '--',
                       no: '--',
-                      username: '--',
-                      nickName2: '--'
+                      username: userObj.username || userObj.nickName || userObj.nickName2
                     }
                   }
                 }
               })
-              for (let i = 0; i <= this.rankData.length; i++) {
-                if (this.userData.openid === this.rankData[i].openid) {
-                  this.userData.no = i + 1
+              if (wx.getStorageSync('userType') === '1') { // 老师账号
+                let userObj = wx.getStorageSync('userData').userObj
+                this.userData = {
+                  openid: userObj.openid,
+                  integralCount: '--',
+                  no: '--',
+                  username: userObj.username || userObj.nickName || userObj.nickName2
                 }
               }
             }
@@ -205,7 +219,7 @@
                 showCancel: false,
                 success: function (res) {
                   if (res.confirm) {
-                    wx.redirectTo({url: '../index/main'})
+                    wx.reLaunch({url: '../index/main'})
                   }
                 }
               })

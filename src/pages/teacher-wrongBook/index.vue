@@ -68,7 +68,7 @@
           </div>
         </div>
         <div class="alert-content sellevel" v-if="showType === 'level'">
-          <div class="alert-content-item" v-for="item in 21" :key="item">
+          <div class="alert-content-item" v-for="item in allNum" :key="item">
             <div class="alert-content-item-con" @click="_selLevel(item)">第{{item + 1}}关</div>
           </div>
         </div>
@@ -102,7 +102,7 @@
         currentLevelno: 1,
         wrongSubject: [],
         showAlert: false,
-        titleText: '请选择年级',
+        titleText: '请选择关卡',
         showType: 'grad',
         sea: '' // 年份季节
       }
@@ -128,10 +128,25 @@
       this.perSequence = opt.perSequence
       this.sea = opt.sea
       this.perSequenceCn = changeNum(opt.perSequence)
-      this._selGrad(wx.getStorageSync('userData').userObj.graId)
+    },
+    onReady () {
+      if (wx.getStorageSync('userData').teaClassMsg.length) {
+        this._selGrad(wx.getStorageSync('userData').teaClassMsg[0].gradeID)
+      }
+    },
+    created () {
+      // console.log(wx.getStorageSync('userData').teaClassMsg[0])
+    },
+    onShow () {
     },
     methods: {
       _openAlert (type) {
+        if (type === 'grad') {
+          this.titleText = '请选择年级'
+        }
+        if (type === 'level') {
+          this.titleText = '请选择关卡'
+        }
         this.showAlert = true
         this.showType = type
       },
@@ -159,19 +174,37 @@
       _getSequence () {
         let param = {
           perSequence: this.perSequence,
-          graId: this.currentGradId
+          graId: this.currentGradId,
+          openid: wx.getStorageSync('openid'),
+          userType: wx.getStorageSync('userType'),
+          loginid: wx.getStorageSync('userInfo2').loginid || ''
         }
         this.allNum = 0
         getSequence(param).then((res) => {
-          console.log(res)
-          if (res.data !== '0') {
-            this.allNum = parseInt(res.data)
+          if (res.success) {
+            if (res.data.ckCount !== '0') {
+              this.allNum = parseInt(res.data.ckCount)
+            } else {
+              wx.showToast({
+                title: '当前年级暂无关卡',
+                icon: 'none'
+              })
+              return
+            }
           } else {
-            wx.showToast({
-              title: '当前年级暂无关卡',
-              icon: 'none'
-            })
-            return
+            // 账号登出提示
+            if (res.data === '404') {
+              wx.showModal({
+                title: '登出提示',
+                content: res.desc,
+                showCancel: false,
+                success: function (res) {
+                  if (res.confirm) {
+                    wx.redirectTo({url: '../index/main'})
+                  }
+                }
+              })
+            }
           }
         })
       },

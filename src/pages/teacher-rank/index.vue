@@ -41,7 +41,7 @@
       return {
         imagesSrc: {
           card: require('static/images/card/s1.png'),
-          foot: require('static/images/foot_img.png')
+          foot: require('static/images/foot_img3.png')
         },
         rankData: [
         ],
