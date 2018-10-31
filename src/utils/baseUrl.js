@@ -1,9 +1,9 @@
 // 测试接口
 // export const baseUrl = 'https://ywdtcgtest.zy.com/tpch'
 // export const baseUrl = 'http://172.22.0.16/tpch'
-export const baseUrl = 'https://ywdtcgtest.zy.com:18443/tpch'
+// export const baseUrl = 'https://ywdtcgtest.zy.com:18443/tpch'
 // 生产端接口
-// export const baseUrl = 'https://ywdtcg.zy.com/tpch'
+export const baseUrl = 'https://ywdtcg.zy.com/tpch'
 
 // appid:wxbb7bbb3af46d47cb appSecret: 8d31c7834f05a38e2d2f8a23b2cf840e
 // ywdtcgtest.zy.local
